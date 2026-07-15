@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_pro/core/theme/app_colors.dart';
 
 class AppTheme {
   static ThemeData get light => ThemeData(
@@ -10,5 +11,23 @@ class AppTheme {
       secondary: const Color(0xFF10B981),
     ),
     fontFamily: 'Roboto',
+    textTheme: TextTheme(
+      titleMedium: TextStyle(
+        fontFamily: 'Hanken Grotesk',
+        fontSize: 20,
+        color: AppColors.primary,
+        fontWeight: FontWeight.w500
+      ),
+      titleSmall: TextStyle(
+        fontFamily: 'Hanken Grotesk',
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: AppColors.primaryDark
+      ),
+      labelMedium: TextStyle(
+        fontSize: 13, 
+        color: Colors.black54
+      )
+    )
   );
 }
