@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_pro/features/admin/presentation/widgets/persona_card_widget.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/datasources/auth_remote_api.dart';
@@ -52,7 +53,8 @@ class _LoginFormState extends State<_LoginForm> {
     final state = _controller!;
     if (state.status == AuthStatus.authenticated && state.user != null) {
       final destination = state.user!.role == UserRole.admin
-          ? const AdminHomePage()
+          //? const AdminHomePage()
+          ? const PersonaCardWidget()
           : const LogisticsDashboardPage(orderId: '8492');
 
       Navigator.of(
