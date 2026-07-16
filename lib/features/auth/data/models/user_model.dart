@@ -9,12 +9,12 @@ class UserModel extends UserEntity {
     required super.role,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
+  factory UserModel.formFirestore(Map<String, dynamic> json, String documentoId) {
     return UserModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      role: json['role'] == 'admin' ? UserRole.admin : UserRole.worker,
+      id: documentoId,
+      name: json['nombreApellido'] as String,
+      email: documentoId.toString(),
+      role: json['rol'] == 'admin' ? UserRole.admin : UserRole.worker,
     );
   }
 }
