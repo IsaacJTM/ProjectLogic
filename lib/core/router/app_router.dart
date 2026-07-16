@@ -21,16 +21,21 @@ class AppRouter {
         refreshListenable: authController,
         redirect: (context, state){
           //Obtener el estado acutal de autenticación
-          final authController = context.read<AuthController>();
           final isLoggedIn  = authController.status == AuthStatus.authenticated;
           final isOnLoginScreen = state.matchedLocation == login;
 
+          print("$authController");
           //Si no esta logueado le mandamos al login 
-          if(!isLoggedIn && !isOnLoginScreen) return login;
-
+          if(!isLoggedIn && !isOnLoginScreen) {
+            print('Bloqueado. Redirigiendo al login por falta de session');
+            return login;
+          }
           //si ya esta logueado e intenta ir al login 
           if(isLoggedIn && isOnLoginScreen){
-            return authController.user?.role == UserRole.admin ? adminHome : workHome;
+           
+            final dest =  authController.user?.role == UserRole.admin ? adminHome : workHome;
+            print('-> [Router] Redirigiendo a Home correspondiente por rol: $dest');
+            return dest;
           }
           
           return null;
@@ -50,7 +55,7 @@ class AppRouter {
           ),
           GoRoute(
             path: editPersonal,
-            builder: (context, state) => const CreatePersonalPages()
+            builder: (context, state) =>  CreatePersonalPages()
           ),
         ]
       );

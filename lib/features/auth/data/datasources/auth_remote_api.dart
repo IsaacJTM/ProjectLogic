@@ -33,7 +33,6 @@ class AuthRemoteApi {
     }
 
     final data = doc.data() as Map<String, dynamic>;
-    print(data);
 
     // Mapeo del rol  a nuestro Enum (user_role.dart)
     final String rolString = data['rol'] as String ?? 'worker';

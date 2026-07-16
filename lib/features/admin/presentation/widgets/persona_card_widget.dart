@@ -38,7 +38,7 @@ class PersonaCardWidget extends StatelessWidget {
               ),
               child: CircleAvatar(
                 radius: 40,
-                backgroundImage: NetworkImage(personal.urlImage!),
+                backgroundImage: NetworkImage(personal.imageUrl!),
               ),
             ),
             const SizedBox(height: 8),

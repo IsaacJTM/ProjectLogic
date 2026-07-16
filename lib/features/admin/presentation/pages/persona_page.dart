@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logistics_pro/core/theme/app_colors.dart';
-import 'package:logistics_pro/core/theme/app_theme.dart';
-import 'package:logistics_pro/features/admin/data/models/persona_model.dart';
+import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
 import 'package:logistics_pro/features/admin/presentation/widgets/persona_card_widget.dart';
 
 class PersonaPage extends StatefulWidget {
@@ -14,68 +14,18 @@ class PersonaPage extends StatefulWidget {
 
 class _PersonaPageState extends State<PersonaPage> {
   TextEditingController _searchController = TextEditingController();
-  List<PersonaModel> _filterPersonal = [];
+  String _filterPersonal = '';
 
-
-  final List<PersonaModel> _allPersonal = [
-        const PersonaModel(
-      id: '1',
-      nombreApellido: 'Carlos Ruiz',
-      cargo: 'Jefe de Almacén',
-      urlImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150',
-      carrera: 'Sistemas', 
-      experienciaAnios: 3, 
-      usuario: 'CarlosR', 
-      contrasena: '122334'
-    ),
-    const PersonaModel(
-      id: '2',
-      nombreApellido: 'Elena Mendez',
-      cargo: 'Gestora de Flotas',
-      urlImage: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
-      carrera: 'Sistemas',
-      experienciaAnios: 3, 
-      usuario: 'ElenaM', 
-      contrasena: '122334'// Borde verde turquesa de la imagen
-    ),
-    const PersonaModel(
-      id: '3',
-      nombreApellido: 'Julian Torres',
-      cargo: 'Analista de Datos',
-      urlImage: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-      carrera: 'Sistemas',
-      experienciaAnios: 3, 
-      usuario: 'JulianT', 
-      contrasena: '122334'
-    ),
-    const PersonaModel(
-      id: '4',
-      nombreApellido: 'Mateo Gomez',
-      cargo: 'Técnico Operativo',
-      urlImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      carrera: 'Sistemas',
-      experienciaAnios: 3, 
-      usuario: 'MateoG', 
-      contrasena: '122334'
-    ),
-    const PersonaModel(
-      id: '5',
-      nombreApellido: 'Sofia Valles',
-      cargo: 'Coordinadora SC',
-      urlImage: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150',
-      carrera: 'Sistemas',
-      experienciaAnios: 3, 
-      usuario: 'SofiaV', 
-      contrasena: '122334'
-    ),
-  ];
-
+ 
+ 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _searchController = TextEditingController();
-    _filterPersonal = _allPersonal;
+    //Ejecutas la consulta a Firebase 
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      context.read<PersonaController>().fetchPersonal();
+    });
   }
 
   @override
@@ -85,19 +35,16 @@ class _PersonaPageState extends State<PersonaPage> {
     super.dispose();
   }
 
-  void _onSearchPeronal(String filtro){
-    setState(() {
-      if(filtro.isEmpty){
-        _filterPersonal = _allPersonal;
-      }else{
-        _filterPersonal = _allPersonal.
-        where((p) => p.nombreApellido.toLowerCase().contains(filtro.toLowerCase())).toList();
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<PersonaController>();
+
+    //Para la busqueda. (Filtro en memoria)
+    final empleadosFiltrados = controller.personaList.where((persona){
+      return persona.nombreApellido.toLowerCase().contains(_filterPersonal.toLowerCase());
+    }).toList();
+
     return Scaffold(
       backgroundColor: Color(0xFFEFF0FF),
       appBar: AppBar(
@@ -131,7 +78,7 @@ class _PersonaPageState extends State<PersonaPage> {
                   ),
                   child: TextField(
                     controller: _searchController,
-                    onChanged: _onSearchPeronal,
+                    onChanged: (valor) => setState(() => _filterPersonal = valor),
                     decoration: InputDecoration(
                       hintText: 'Buscar personal...',
                       hintStyle: TextStyle(color: Colors.black38),
@@ -142,35 +89,38 @@ class _PersonaPageState extends State<PersonaPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _filterPersonal.length.toInt() == 0 
-                ? Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text('Lista de Personal'),
-                      Text('Ingrese su primer personal')
-                    ],
-                  ),
-                )
-                : Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(4),// Espacio extra para que no tape el botón
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 0.82
-                    ), 
-                    itemCount: _filterPersonal.length,
-                    itemBuilder: (context, index){
-                      return PersonaCardWidget(
-                        personal: _filterPersonal[index],
-                        onCarPressed: (){},
-                        onEditPressed: (){},
-                      );
-                    }
+                if(controller.state == PersonState.loading)
+                  const Expanded(child: Center(child: CircularProgressIndicator()))
+                else if (empleadosFiltrados.isEmpty)
+                  Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('Lista de Personal'),
+                        Text('Ingrese su primer personal')
+                      ],
+                    ),
                   )
-                ),
+                else
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(4),// Espacio extra para que no tape el botón
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        childAspectRatio: 0.82
+                      ), 
+                      itemCount: empleadosFiltrados.length,
+                      itemBuilder: (context, index){
+                        return PersonaCardWidget(
+                          personal: empleadosFiltrados[index],
+                          onCarPressed: (){},
+                          onEditPressed: (){},
+                        );
+                      }
+                    )
+                  ),
               ],
             ),
           ),

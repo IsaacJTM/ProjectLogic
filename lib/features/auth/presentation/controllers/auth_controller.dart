@@ -25,6 +25,7 @@ class AuthController extends ChangeNotifier {
       final user = await loginUseCase(email: email, password: password);
       _user = user;
       _status = AuthStatus.authenticated;
+
       notifyListeners();
     } catch (e) {
       _status = AuthStatus.error;

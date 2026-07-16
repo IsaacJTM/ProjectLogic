@@ -51,16 +51,6 @@ class _LoginFormState extends State<_LoginForm> {
 
   void _onAuthChanged() {
     final state = _controller!;
-    if (state.status == AuthStatus.authenticated && state.user != null) {
-      final destination = state.user!.role == UserRole.admin
-          //? const AdminHomePage()
-          ? const PersonaPage()
-          : const LogisticsDashboardPage(orderId: '8492');
-
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => destination));
-    }
     if (state.status == AuthStatus.error && state.errorMessage != null) {
       ScaffoldMessenger.of(
         context,
