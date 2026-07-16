@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logistics_pro/core/theme/app_colors.dart';
 import 'package:logistics_pro/core/theme/app_theme.dart';
 import 'package:logistics_pro/features/admin/data/models/persona_model.dart';
@@ -17,7 +18,7 @@ class _PersonaPageState extends State<PersonaPage> {
 
 
   final List<PersonaModel> _allPersonal = [
-    const PersonaModel(
+        const PersonaModel(
       id: '1',
       nombreApellido: 'Carlos Ruiz',
       cargo: 'Jefe de Almacén',
@@ -141,7 +142,17 @@ class _PersonaPageState extends State<PersonaPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Expanded(
+                _filterPersonal.length.toInt() == 0 
+                ? Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Lista de Personal'),
+                      Text('Ingrese su primer personal')
+                    ],
+                  ),
+                )
+                : Expanded(
                   child: GridView.builder(
                     padding: const EdgeInsets.all(4),// Espacio extra para que no tape el botón
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -168,7 +179,7 @@ class _PersonaPageState extends State<PersonaPage> {
             right: 100,
             left: 100,
             child: ElevatedButton.icon(
-              onPressed: (){}, 
+              onPressed: () => context.push('/edit-person'), 
               label: Text('Nuevo', style: TextStyle(color: Colors.white, fontSize: 16)),
               icon: Icon(Icons.person_add, color: Colors.white,),
               style: ElevatedButton.styleFrom(
