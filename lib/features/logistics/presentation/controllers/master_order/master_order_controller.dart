@@ -25,17 +25,26 @@ class MasterOrderController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isLoaded => _status == MasterOrderStatus.loaded && _order != null;
 
-  Future<void> loadOrder(String orderId) async {
+  Future<void> loadOrder(String userEmail) async {
     _status = MasterOrderStatus.loading;
     notifyListeners();
     try {
-      final order = await repository.getOrderById(orderId);
-      _order = order;
+      final orders = await repository.getActiveOrders(userEmail);
+
+      // 2. Validamos si hay órdenes en la fase 0 para este trabajador
+      if (orders.isEmpty) {
+        throw Exception(
+          'No tienes órdenes nuevas por aceptar en este momento.',
+        );
+      }
+
+      _order = orders.first;
+
       _status = MasterOrderStatus.loaded;
       notifyListeners();
     } catch (e) {
       _status = MasterOrderStatus.error;
-      _errorMessage = 'No se pudo cargar la orden: $e';
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
     }
   }

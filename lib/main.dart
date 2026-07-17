@@ -12,15 +12,17 @@ import 'package:logistics_pro/features/auth/domain/usecases/login_usecase.dart';
 import 'package:logistics_pro/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:logistics_pro/features/logistics/data/datasources/media_upload_api.dart';
 import 'package:logistics_pro/firebase_options.dart';
+import 'package:logistics_pro/gencode/TareaChecklistService.dart';
+import 'package:logistics_pro/gencode/orden_trabajo_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'package:provider/provider.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const LogisticsProApp());
-} 
+}
 
 class LogisticsProApp extends StatefulWidget {
   const LogisticsProApp({super.key});
@@ -32,7 +34,9 @@ class LogisticsProApp extends StatefulWidget {
 class _LogisticsProAppState extends State<LogisticsProApp> {
   late final AuthController _authController;
   late final _router;
-
+  //final ClienteService _clienteService = ClienteService();
+  //final OrdenTrabajoService _ordenService = OrdenTrabajoService();
+  final TareaChecklistService _tareaChecklistService = TareaChecklistService();
   @override
   void initState() {
     super.initState();
@@ -42,7 +46,16 @@ class _LogisticsProAppState extends State<LogisticsProApp> {
     final authRepo = AuthRepositoryImpl(authApi);
     _authController = AuthController(loginUseCase: LoginUseCase(authRepo));
     _router = AppRouter.createRouter(_authController);
+    //_inicializarClientes();
+  }
 
+  Future<void> _inicializarClientes() async {
+    final existenOrdenes = await _tareaChecklistService.getAllTareas();
+    if (!existenOrdenes.isNotEmpty) {
+      await _tareaChecklistService.registrarTareasChecklist();
+    } else {
+      print('Órdenes ya existen en la base de datos');
+    }
   }
 
   @override

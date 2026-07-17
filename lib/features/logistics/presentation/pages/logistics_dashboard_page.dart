@@ -21,18 +21,16 @@ import '../widgets/modern_loading_overlay.dart';
 import '../widgets/timeline_stepper.dart';
 
 class LogisticsDashboardPage extends StatelessWidget {
-  final String orderId;
-  const LogisticsDashboardPage({super.key, required this.orderId});
+  const LogisticsDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return _DashboardBody(orderId: orderId);
+    return const _DashboardBody();
   }
 }
 
 class _DashboardBody extends StatefulWidget {
-  final String orderId;
-  const _DashboardBody({required this.orderId});
+  const _DashboardBody();
 
   @override
   State<_DashboardBody> createState() => _DashboardBodyState();
@@ -46,9 +44,6 @@ class _DashboardBodyState extends State<_DashboardBody> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Equivalente al `listener` de BlocConsumer<MasterOrderBloc, ...>:
-    // mostramos el SnackBar de error como efecto secundario, sin que
-    // forme parte del build.
     final controller = context.read<MasterOrderController>();
     if (_masterController != controller) {
       _masterController?.removeListener(_onMasterOrderChanged);
@@ -73,16 +68,16 @@ class _DashboardBodyState extends State<_DashboardBody> {
     super.dispose();
   }
 
-  Widget _buildPhaseContent(OrderPhase phase) {
+  Widget _buildPhaseContent(OrderPhase phase, String currentOrderId) {
     switch (phase) {
       case OrderPhase.assigned:
         return const AssignedPhaseView();
       case OrderPhase.enRoute:
-        return EnRoutePhaseView(orderId: widget.orderId);
+        return EnRoutePhaseView(orderId: currentOrderId);
       case OrderPhase.onSite:
         return const OnSitePhaseView();
       case OrderPhase.execution:
-        return ExecutionPhaseView(orderId: widget.orderId);
+        return ExecutionPhaseView(orderId: currentOrderId);
       case OrderPhase.completed:
         return const CompletedPhaseView();
     }
@@ -93,11 +88,77 @@ class _DashboardBodyState extends State<_DashboardBody> {
     return Scaffold(
       body: Consumer<MasterOrderController>(
         builder: (context, masterState, _) {
+          if (masterState.status == MasterOrderStatus.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // 2. CONTROL DE ESTADO VACÍO: Si no hay órdenes
+          if (masterState.status == MasterOrderStatus.error) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.task_alt_rounded,
+                        size: 80,
+                        color: Colors.green.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      masterState.errorMessage ?? 'Sin órdenes pendientes',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '¡Excelente trabajo! Has completado tus asignaciones o estás al día con tus rutas.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        context.read<MasterOrderController>().loadOrder(
+                          "manuel.rm@worker.com",
+                        );
+                      },
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Comprobar nuevas órdenes'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           if (!masterState.isLoaded) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final order = masterState.order!;
+          final actualOrderId = order.id;
 
           return Stack(
             children: [
@@ -112,7 +173,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
                     flexibleSpace: FlexibleSpaceBar(
                       titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
                       title: Text(
-                        'Orden #${order.id}',
+                        'Orden #$actualOrderId', // ✅ CAMBIADO: Título dinámico real
                         style: const TextStyle(
                           color: Color(0xFF0F172A),
                           fontWeight: FontWeight.w900,
@@ -145,7 +206,9 @@ class _DashboardBodyState extends State<_DashboardBody> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          _buildPhaseContent(order.phase),
+
+                          _buildPhaseContent(order.phase, actualOrderId),
+
                           const SizedBox(height: 100),
                         ],
                       ),
@@ -174,9 +237,83 @@ class _DashboardBodyState extends State<_DashboardBody> {
                   IconButton.filledTonal(
                     onPressed: masterState.isSyncing
                         ? null
-                        : () => context
-                              .read<MasterOrderController>()
-                              .revertPhase(),
+                        : () async {
+                            String nombreFaseAnterior = '';
+                            switch (order.phase) {
+                              case OrderPhase.enRoute:
+                                nombreFaseAnterior = 'ASIGNADO';
+                                break;
+                              case OrderPhase.onSite:
+                                nombreFaseAnterior = 'EN RUTA';
+                                break;
+                              case OrderPhase.execution:
+                                nombreFaseAnterior = 'EN SITIO';
+                                break;
+                              case OrderPhase.completed:
+                                nombreFaseAnterior = 'EJECUCIÓN';
+                                break;
+                              default:
+                                nombreFaseAnterior = 'FASE ANTERIOR';
+                            }
+
+                            final seguroDeRetroceder = await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext dialogContext) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  title: const Row(
+                                    children: [
+                                      Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: Colors.orange,
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text('¿Regresar de fase?'),
+                                    ],
+                                  ),
+                                  content: Text(
+                                    '¿Estás seguro de que deseas regresar a la fase anterior ("$nombreFaseAnterior")? '
+                                    'Esto cambiará el estado en el sistema.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(
+                                        dialogContext,
+                                      ).pop(false),
+                                      child: const Text(
+                                        'Cancelar',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red.shade50,
+                                        elevation: 0,
+                                      ),
+                                      onPressed: () =>
+                                          Navigator.of(dialogContext).pop(true),
+                                      child: const Text(
+                                        'Sí, regresar',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            if (seguroDeRetroceder == true && context.mounted) {
+                              context
+                                  .read<MasterOrderController>()
+                                  .revertPhase();
+                            }
+                          },
                     icon: const Icon(Icons.arrow_back_rounded),
                   ),
                   const SizedBox(width: 12),

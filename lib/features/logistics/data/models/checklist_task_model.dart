@@ -1,29 +1,52 @@
 import '../../domain/entities/checklist_task_entity.dart';
 
 class ChecklistTaskModel extends ChecklistTaskEntity {
-  const ChecklistTaskModel({
+  final int idOrden;
+  final int idTarea;
+  final String notaTarea;
+
+  ChecklistTaskModel({
     required super.id,
     required super.name,
-    super.done,
-    super.completedAt,
-    super.note,
+    required super.done,
+    required this.idOrden,
+    required this.idTarea,
+    required this.notaTarea,
   });
 
-  factory ChecklistTaskModel.fromJson(Map<String, dynamic> json) {
+  factory ChecklistTaskModel.fromFirestore(
+    String docId,
+    Map<String, dynamic> data,
+  ) {
     return ChecklistTaskModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      done: json['done'] as bool? ?? false,
-      completedAt: json['completedAt'] as String?,
-      note: json['note'] as String? ?? '',
+      id: docId,
+      name: data['descripcion'] ?? '',
+      done: data['estadoCompletada'] as bool? ?? false,
+      idOrden: data['idOrden'] as int? ?? 0,
+      idTarea: data['idTarea'] as int? ?? 0,
+      notaTarea: data['notaTarea'] ?? '',
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'done': done,
-        'completedAt': completedAt,
-        'note': note,
-      };
+  @override
+  ChecklistTaskModel copyWith({
+    String? id,
+    String? name,
+    bool? done,
+    int? idOrden,
+    int? idTarea,
+    String? notaTarea,
+
+    String? completedAt,
+    String? note,
+  }) {
+    return ChecklistTaskModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      done: done ?? this.done,
+      idOrden: idOrden ?? this.idOrden,
+      idTarea: idTarea ?? this.idTarea,
+      notaTarea: notaTarea ?? note ?? this.notaTarea,
+    );
+  }
 }

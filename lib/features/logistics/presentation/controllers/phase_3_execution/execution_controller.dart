@@ -1,24 +1,31 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
 import '../../../domain/entities/checklist_task_entity.dart';
+import '../../../domain/repositories/logistics_repository.dart';
 import '../../../domain/usecases/submit_execution_checklist_usecase.dart';
 
 class ExecutionController extends ChangeNotifier {
   final SubmitExecutionChecklistUseCase submitChecklistUseCase;
+  final LogisticsRepository logisticsRepository;
+
   Timer? _timer;
   final Stopwatch _stopwatch = Stopwatch();
 
-  ExecutionController({required this.submitChecklistUseCase});
+  ExecutionController({
+    required this.submitChecklistUseCase,
+    required this.logisticsRepository,
+  });
 
   List<ChecklistTaskEntity> _tasks = const [];
   Duration _elapsed = Duration.zero;
+  bool _isLoading = false;
   bool _isSubmitting = false;
   bool _isSubmitted = false;
 
   List<ChecklistTaskEntity> get tasks => _tasks;
   Duration get elapsed => _elapsed;
+  bool get isLoading => _isLoading;
   bool get isSubmitting => _isSubmitting;
   bool get isSubmitted => _isSubmitted;
 
@@ -27,6 +34,24 @@ class ExecutionController extends ChangeNotifier {
 
   String get elapsedLabel =>
       '${_elapsed.inMinutes.toString().padLeft(2, '0')}:${(_elapsed.inSeconds % 60).toString().padLeft(2, '0')}';
+
+  Future<void> loadTasksFromFirestore(String orderId) async {
+    if (_tasks.isNotEmpty) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final remoteTasks = await logisticsRepository.getChecklistTasks(orderId);
+      _tasks = remoteTasks;
+      startExecutionClock();
+    } catch (e) {
+      print('Error al cargar tareas desde Firestore: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   void loadChecklist(List<ChecklistTaskEntity> tasks) {
     _tasks = tasks;
@@ -71,6 +96,7 @@ class ExecutionController extends ChangeNotifier {
     notifyListeners();
     try {
       await submitChecklistUseCase(orderId, _tasks);
+      stopExecutionClock();
       _isSubmitting = false;
       _isSubmitted = true;
       notifyListeners();
