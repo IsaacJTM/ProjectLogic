@@ -31,7 +31,6 @@ class LogisticsProApp extends StatefulWidget {
 
 class _LogisticsProAppState extends State<LogisticsProApp> {
   late final AuthController _authController;
-  late final PersonaController _personaController;
   late final _router;
 
   @override
@@ -42,16 +41,6 @@ class _LogisticsProAppState extends State<LogisticsProApp> {
     final authApi = AuthRemoteApi();
     final authRepo = AuthRepositoryImpl(authApi);
     _authController = AuthController(loginUseCase: LoginUseCase(authRepo));
-
-    //Ensambar el modulo del admin
-    final adminDataSource = AdminRemoteDatasource();
-    final admiRepository = AdminRepositoryImpl(adminDataSource);
-    _personaController = PersonaController(
-      createPersonaUsecase: CreatePersonaUsecase(admiRepository), 
-      getPersonalUsecase: GetPersonalUsecase(admiRepository)
-    );
-
-
     _router = AppRouter.createRouter(_authController);
 
   }
@@ -61,7 +50,6 @@ class _LogisticsProAppState extends State<LogisticsProApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthController>.value(value: _authController),
-        ChangeNotifierProvider<PersonaController>.value(value: _personaController),
       ],
       child: MaterialApp.router(
         title: 'Logistcs App',

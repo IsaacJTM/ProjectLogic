@@ -6,6 +6,7 @@ import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecas
 enum PersonState {initial, loading, success, error}
 
 class PersonaController extends ChangeNotifier{
+
   // Hacer la referencia al domain a los usecases 
   final CreatePersonaUsecase createPersonaUsecase;
   final GetPersonalUsecase getPersonalUsecase;
@@ -21,9 +22,10 @@ class PersonaController extends ChangeNotifier{
   List<PersonaModel> _personaList = [];
   String? _errorMessage;
 
-  PersonState get state => _personState;
+  PersonState get status => _personState;
   List<PersonaModel> get personaList => _personaList;
   String? get errorMessage => _errorMessage;
+  bool get isLoaded => _personState == PersonState.success;
 
   //Llama a la lista de empleados desde usecase 
   Future<void> fetchPersonal() async{
@@ -55,5 +57,9 @@ class PersonaController extends ChangeNotifier{
       notifyListeners();
       return false;
     }
+  }
+  
+  void consumeError(){
+    _errorMessage = null;
   }
 }

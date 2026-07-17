@@ -1,5 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logistics_pro/features/admin/data/datasources/admin_remote_datasource.dart';
+import 'package:logistics_pro/features/admin/data/repositories/admin_repository_impl.dart';
+import 'package:logistics_pro/features/admin/domain/usecases/create_persona_usecase.dart';
+import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecase.dart';
+import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/submit_execution_checklist_usecase.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/track_technician_route_usecase.dart';
 import 'package:logistics_pro/features/logistics/presentation/controllers/master_order/master_order_controller.dart';
@@ -54,11 +59,33 @@ class AppRouter {
           ),
           GoRoute(
             path: adminHome,
-            builder: (context, state) => const PersonaPage()
+            builder: (context, state) {
+              final adminDataSource = AdminRemoteDatasource();
+              final adminRepository = AdminRepositoryImpl(adminDataSource);
+
+              return ChangeNotifierProvider(
+                create: (_) => PersonaController(
+                  createPersonaUsecase: CreatePersonaUsecase(adminRepository),
+                  getPersonalUsecase: GetPersonalUsecase(adminRepository)
+                ),
+                child: const PersonaPage(),
+              ); 
+            } 
           ),
           GoRoute(
             path: editPersonal,
-            builder: (context, state) =>  CreatePersonalPages()
+            builder: (context, state){
+              final adminDatasource = AdminRemoteDatasource();
+              final adminRepository = AdminRepositoryImpl(adminDatasource);
+
+              return ChangeNotifierProvider(
+                create: (_) => PersonaController(
+                  createPersonaUsecase: CreatePersonaUsecase(adminRepository), 
+                  getPersonalUsecase: GetPersonalUsecase(adminRepository)
+                ),
+                child:  CreatePersonalPages(),
+              );
+            }
           ),
           GoRoute(
             path: workHome,
