@@ -1,80 +1,134 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../controllers/phase_3_execution/execution_controller.dart';
 
-class ExecutionPhaseView extends StatelessWidget {
+class ExecutionPhaseView extends StatefulWidget {
   final String orderId;
   const ExecutionPhaseView({super.key, required this.orderId});
 
   @override
+  State<ExecutionPhaseView> createState() => _ExecutionPhaseViewState();
+}
+
+class _ExecutionPhaseViewState extends State<ExecutionPhaseView> {
+  @override
+  void initState() {
+    super.initState();
+    // Al entrar a la fase, llamamos al nuevo método encargado de Firebase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ExecutionController>().loadTasksFromFirestore(
+        widget.orderId,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<ExecutionController>(
-      builder: (context, state, _) {
+      builder: (context, controller, _) {
+        // Mostramos carga si está consultando a la base de datos
+        if (controller.isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (controller.tasks.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text(
+                'No hay tareas asignadas a esta orden en Firestore.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          );
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 12),
-              child: Text(
-                'CHECKLIST OPERATIVO',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Column(
-                children: state.tasks.map((task) {
-                  return CheckboxListTile(
-                    value: task.done,
-                    onChanged: (_) =>
-                        context.read<ExecutionController>().toggleTask(task.id),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: controller.tasks.length,
+              itemBuilder: (context, index) {
+                final task = controller.tasks[index];
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                  color: task.done
+                      ? Colors.blue.shade50
+                      : const Color(0xFFF8FAFC),
+                  child: CheckboxListTile(
+                    activeColor: Colors.blue.shade600,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     title: Text(
                       task.name,
                       style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: task.done
+                            ? Colors.blue.shade900
+                            : const Color(0xFF334155),
                         decoration: task.done
                             ? TextDecoration.lineThrough
                             : null,
-                        color: task.done ? Colors.grey : Colors.black87,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    subtitle: task.done
-                        ? Text('Completado a las ${task.completedAt ?? ''}')
+                    subtitle: task.note != null && task.note!.isNotEmpty
+                        ? Text(task.note!, style: const TextStyle(fontSize: 12))
                         : null,
-                    controlAffinity: ListTileControlAffinity.leading,
-                  );
-                }).toList(),
-              ),
+                    value: task.done,
+                    // Enviamos el id (String) tal como lo pide tu método toggleTask
+                    onChanged: (_) {
+                      controller.toggleTask(task.id);
+                    },
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
+
+            // Botón de finalización
             SizedBox(
               width: double.infinity,
+              height: 52,
               child: ElevatedButton(
-                onPressed: state.progress < 1 || state.isSubmitting
-                    ? null
-                    : () => context.read<ExecutionController>().submitChecklist(
-                        orderId,
-                      ),
-                child: state.isSubmitting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: controller.progress == 1.0
+                      ? Colors.green
+                      : Colors.grey.shade300,
+                  foregroundColor: controller.progress == 1.0
+                      ? Colors.white
+                      : Colors.grey.shade600,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed:
+                    controller.progress == 1.0 && !controller.isSubmitting
+                    ? () => controller.submitChecklist(widget.orderId)
+                    : null,
+                child: controller.isSubmitting
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Enviar checklist y finalizar ejecución',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
-                      )
-                    : const Text('Enviar checklist y finalizar ejecución'),
+                      ),
               ),
             ),
           ],

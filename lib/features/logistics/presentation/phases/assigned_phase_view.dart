@@ -14,14 +14,14 @@ class _AssignedPhaseViewState extends State<AssignedPhaseView> {
 
   Future<void> _acceptOrder() async {
     setState(() => _status = _AssignedStatus.processing);
-    await Future.delayed(const Duration(milliseconds: 600));
+    //await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     setState(() => _status = _AssignedStatus.accepted);
   }
 
   Future<void> _rejectOrder(String reason) async {
     setState(() => _status = _AssignedStatus.processing);
-    await Future.delayed(const Duration(milliseconds: 600));
+    // await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     setState(() => _status = _AssignedStatus.rejected);
   }

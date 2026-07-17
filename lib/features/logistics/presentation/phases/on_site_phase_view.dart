@@ -14,7 +14,7 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
 
   Future<void> _captureArrivalPhoto() async {
     setState(() => _status = _OnSiteStatus.uploading);
-    await Future.delayed(const Duration(milliseconds: 1200));
+    //await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;
     setState(() => _status = _OnSiteStatus.confirmed);
   }

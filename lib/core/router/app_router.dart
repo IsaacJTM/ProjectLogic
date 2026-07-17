@@ -30,94 +30,99 @@ class AppRouter {
   static const String editPersonal = '/edit-person';
 
   AppRouter._();
- 
-  static GoRouter createRouter(AuthController authController){
-      return GoRouter(
-        initialLocation: login,
-        refreshListenable: authController,
-        redirect: (context, state){
-          //Obtener el estado acutal de autenticación
-          final isLoggedIn  = authController.status == AuthStatus.authenticated;
-          final isOnLoginScreen = state.matchedLocation == login;
-          //Si no esta logueado le mandamos al login 
-          if(!isLoggedIn && !isOnLoginScreen) {
-            return login;
-          }
-          //si ya esta logueado e intenta ir al login 
-          if(isLoggedIn && isOnLoginScreen){
-            final dest =  authController.user?.role == UserRole.admin ? adminHome : workHome;
-            return dest;
-          }
-          
-          return null;
-        },
-        routes: [
-          GoRoute(
-            path: login,
-            builder: (context, state) => const LoginPage(),
-          ),
-          ShellRoute(
-            builder: (context, state, child){
-              final adminDataSource = AdminRemoteDatasource();
-              final adminRepository = AdminRepositoryImpl(adminDataSource);
 
-              return ChangeNotifierProvider(
-                create: (_) => PersonaController(
-                  createPersonaUsecase: CreatePersonaUsecase(adminRepository),
-                  getPersonalUsecase: GetPersonalUsecase(adminRepository)
+  static GoRouter createRouter(AuthController authController) {
+    return GoRouter(
+      initialLocation: login,
+      refreshListenable: authController,
+      redirect: (context, state) {
+        //Obtener el estado acutal de autenticación
+        final isLoggedIn = authController.status == AuthStatus.authenticated;
+        final isOnLoginScreen = state.matchedLocation == login;
+        //Si no esta logueado le mandamos al login
+        if (!isLoggedIn && !isOnLoginScreen) {
+          return login;
+        }
+        //si ya esta logueado e intenta ir al login
+        if (isLoggedIn && isOnLoginScreen) {
+          final dest = authController.user?.role == UserRole.admin
+              ? adminHome
+              : workHome;
+          return dest;
+        }
+
+        return null;
+      },
+      routes: [
+        GoRoute(path: login, builder: (context, state) => const LoginPage()),
+        GoRoute(
+          path: adminHome,
+          builder: (context, state) {
+            final adminDataSource = AdminRemoteDatasource();
+            final adminRepository = AdminRepositoryImpl(adminDataSource);
+
+            return ChangeNotifierProvider(
+              create: (_) => PersonaController(
+                createPersonaUsecase: CreatePersonaUsecase(adminRepository),
+                getPersonalUsecase: GetPersonalUsecase(adminRepository),
+              ),
+              child: const PersonaPage(),
+            );
+          },
+        ),
+        GoRoute(
+          path: editPersonal,
+          builder: (context, state) {
+            final adminDatasource = AdminRemoteDatasource();
+            final adminRepository = AdminRepositoryImpl(adminDatasource);
+
+            return ChangeNotifierProvider(
+              create: (_) => PersonaController(
+                createPersonaUsecase: CreatePersonaUsecase(adminRepository),
+                getPersonalUsecase: GetPersonalUsecase(adminRepository),
+              ),
+              child: CreatePersonalPages(),
+            );
+          },
+        ),
+        GoRoute(
+          path: workHome,
+          builder: (context, state) {
+            const orderId = '234433';
+            final userEmail = authController.user?.email ?? '';
+            final repository = LogisticsRepositoryImpl(
+              orderRemoteApi: OrderRemoteApi(),
+              routeGpsApi: RouteGpsApi(),
+              mediaUploadApi: MediaUploadApi(),
+            );
+
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (_) =>
+                      MasterOrderController(repository: repository)
+                        ..loadOrder(userEmail),
                 ),
-               child: child,
-              );
-            },
-            routes: [
-              GoRoute(
-                path: adminHome,
-                builder: (context, state) => const PersonaPage(),
-              ),
-              GoRoute(
-                path: editPersonal,
-                builder: (context, state) =>  CreatePersonalPages(),
-              ),
-            ]
-          ),
-          GoRoute(
-            path: workHome,
-            builder: (context, state) {
-              const orderId = '2344';
-
-              final repository = LogisticsRepositoryImpl(
-                orderRemoteApi: OrderRemoteApi(),
-                routeGpsApi: RouteGpsApi(),
-                mediaUploadApi: MediaUploadApi(),
-              );
-
-              return MultiProvider(
-                providers: [
-                  ChangeNotifierProvider(
-                    create: (_) =>
-                        MasterOrderController(repository: repository)..loadOrder(orderId),
+                ChangeNotifierProvider(
+                  create: (_) => EnRouteController(
+                    trackRoute: TrackTechnicianRouteUseCase(repository),
                   ),
-                  ChangeNotifierProvider(
-                    create: (_) => EnRouteController(
-                      trackRoute: TrackTechnicianRouteUseCase(repository),
+                ),
+                ChangeNotifierProvider(
+                  create: (_) => ExecutionController(
+                    submitChecklistUseCase: SubmitExecutionChecklistUseCase(
+                      repository,
                     ),
+                    logisticsRepository: repository,
                   ),
-                  ChangeNotifierProvider(
-                    create: (_) => ExecutionController(
-                      submitChecklistUseCase: SubmitExecutionChecklistUseCase(repository),
-                      )..loadChecklist(const []),
-                  ),
-                  // AssignedPhaseView, OnSitePhaseView y CompletedPhaseView ya no
-                  // necesitan un provider aquí: manejan su propio estado local
-                  // (setState) porque ninguna otra pantalla del dashboard consume
-                  // su estado.
-                ],
-                child: const LogisticsDashboardPage(orderId: orderId),
-              );
-
-            }
-          ),
-        ]
-      );
+                ),
+              ],
+              //child: const LogisticsDashboardPage(orderId: orderId),
+              child: const LogisticsDashboardPage(),
+            );
+          },
+        ),
+      ],
+    );
   }
 }
