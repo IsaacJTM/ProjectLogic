@@ -10,6 +10,7 @@ import 'package:logistics_pro/features/auth/data/datasources/auth_remote_api.dar
 import 'package:logistics_pro/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:logistics_pro/features/auth/domain/usecases/login_usecase.dart';
 import 'package:logistics_pro/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:logistics_pro/features/logistics/data/datasources/media_upload_api.dart';
 import 'package:logistics_pro/firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -49,6 +50,7 @@ class _LogisticsProAppState extends State<LogisticsProApp> {
       createPersonaUsecase: CreatePersonaUsecase(admiRepository), 
       getPersonalUsecase: GetPersonalUsecase(admiRepository)
     );
+
 
     _router = AppRouter.createRouter(_authController);
 

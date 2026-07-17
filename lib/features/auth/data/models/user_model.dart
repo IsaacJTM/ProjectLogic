@@ -12,8 +12,8 @@ class UserModel extends UserEntity {
   factory UserModel.formFirestore(Map<String, dynamic> json, String documentoId) {
     return UserModel(
       id: documentoId,
-      name: json['nombreApellido'] as String,
-      email: documentoId.toString(),
+      name: (json['nombreApellido'] as String ?? json["name"] ?? 'Colaborardor').toString(),
+      email: documentoId,
       role: json['rol'] == 'admin' ? UserRole.admin : UserRole.worker,
     );
   }

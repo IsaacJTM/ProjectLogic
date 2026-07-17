@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-
 import '../../data/datasources/media_upload_api.dart';
 import '../../data/datasources/order_remote_api.dart';
 import '../../data/datasources/route_gps_api.dart';
@@ -26,35 +26,7 @@ class LogisticsDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final repository = LogisticsRepositoryImpl(
-      orderRemoteApi: OrderRemoteApi(),
-      routeGpsApi: RouteGpsApi(),
-      mediaUploadApi: MediaUploadApi(),
-    );
-
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) =>
-              MasterOrderController(repository: repository)..loadOrder(orderId),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => EnRouteController(
-            trackRoute: TrackTechnicianRouteUseCase(repository),
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ExecutionController(
-            submitChecklistUseCase: SubmitExecutionChecklistUseCase(repository),
-          )..loadChecklist(const []),
-        ),
-        // AssignedPhaseView, OnSitePhaseView y CompletedPhaseView ya no
-        // necesitan un provider aquí: manejan su propio estado local
-        // (setState) porque ninguna otra pantalla del dashboard consume
-        // su estado.
-      ],
-      child: _DashboardBody(orderId: orderId),
-    );
+    return _DashboardBody(orderId: orderId);
   }
 }
 

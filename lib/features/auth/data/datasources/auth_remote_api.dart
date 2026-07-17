@@ -38,6 +38,7 @@ class AuthRemoteApi {
     final String rolString = data['rol'] as String ?? 'worker';
     final UserRole userRole = rolString == 'admin' ? UserRole.admin : UserRole.worker;
 
+
     //Para retornar el modelo de usuario en el controller 
     return UserModel.formFirestore(data, doc.id);
 

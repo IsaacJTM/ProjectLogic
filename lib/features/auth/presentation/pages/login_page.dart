@@ -17,12 +17,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final repository = AuthRepositoryImpl(AuthRemoteApi());
-
-    return ChangeNotifierProvider(
-      create: (_) => AuthController(loginUseCase: LoginUseCase(repository)),
-      child: const _LoginForm(),
-    );
+    return const _LoginForm();
   }
 }
 
