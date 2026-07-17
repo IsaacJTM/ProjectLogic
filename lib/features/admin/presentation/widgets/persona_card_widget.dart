@@ -8,10 +8,12 @@ class PersonaCardWidget extends StatelessWidget {
   final VoidCallback? onEditPressed;
   PersonaCardWidget({super.key, required this.personal, this.onCarPressed, this.onEditPressed});
 
-  bool pintar = false;
-
   @override
   Widget build(BuildContext context) {
+    bool pintar = false;
+    if( personal.isProject != null){
+      pintar = personal.isProject!;
+    }
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -34,7 +36,7 @@ class PersonaCardWidget extends StatelessWidget {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: pintar ? Border.all(color: Colors.blue, width: 2) : Border.all(color: AppColors.secundaryColor, width: 2)
+                border: pintar ? Border.all(color: AppColors.secundaryColor, width: 2) : Border.all(color: Colors.blue, width: 2) 
               ),
               child: CircleAvatar(
                 radius: 40,

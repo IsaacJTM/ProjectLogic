@@ -32,6 +32,11 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final controller = context.read<PersonaController>();
+    if(_personaController != controller){
+      _personaController?.removeListener(_onPersonaChanged);
+      _personaController = controller;
+      _personaController!.addListener(_onPersonaChanged);
+    }
   }
 
   void _onPersonaChanged(){
@@ -62,6 +67,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
       setState(() {
         _isSaved = true;
       });
+      state.resetState();
     }
   }
 
@@ -74,6 +80,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
     _experienciaController.dispose();
     _usuarioController.dispose();
     _contraseniaController.dispose();
+    _isSaved = false;
     super.dispose();
   }
 
@@ -87,13 +94,8 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
       );
       return;
     }
-
-
-
     final nuevaPersona = PersonaModel(
-      email: _usuarioController.text.trim().contains('@')
-        ? _usuarioController.text.trim()
-        : '${_usuarioController.text.trim()}@worker.com', 
+      email: '${_usuarioController.text.trim()}@worker.com', 
       nombreApellido: _nombreApellidoController.text.trim(), 
       carrera: _carreraController.text.trim(), 
       experienciaAnios: int.tryParse(_experienciaController.text) ?? 0, 
@@ -101,8 +103,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
       usuario: _usuarioController.text.trim(),
       contrasena: _contraseniaController.text.trim()
     );
-
-    context.read<PersonaController>().createPersonaUsecase(nuevaPersona);
+    context.read<PersonaController>().registrarEmpleado(nuevaPersona);
   }
 
   @override
@@ -231,7 +232,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
                         _buildFieldLabel('Usuario'),
                         _buildTextFormField(
                           controller: _usuarioController, 
-                          hint: 'jperez_logistics',
+                          hint: 'jperez',
                           validator: (value) => value == null || value.trim().isEmpty ? 'Ingresa un nombre de usuario' : null,
                         ),
                         const SizedBox(height: 16),
@@ -325,13 +326,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
     required String? Function(String?) validator,
     TextInputType keyboardType = TextInputType.text,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _isSaved ? const Color(0xFFF1F5F9) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFCBD5E1)),
-      ),
-      child: TextFormField(
+    return TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         enabled: !_isSaved,
@@ -340,11 +335,12 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.black38),
-          border: InputBorder.none,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildDropdownField() {
@@ -353,7 +349,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
       decoration: BoxDecoration(
         color: _isSaved ? const Color(0xFFF1F5F9) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFCBD5E1)),
+        border: Border.all(color: Colors.black54),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -380,13 +376,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
   }
 
   Widget _buildPasswordField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _isSaved ? const Color(0xFFF1F5F9) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFCBD5E1)),
-      ),
-      child: TextFormField(
+    return TextFormField(
         controller: _contraseniaController,
         obscureText: _obscurePassword,
         enabled: !_isSaved, // 👑 Bloqueamos la edición de contraseña
@@ -399,7 +389,9 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
         decoration: InputDecoration(
           hintText: '********',
           hintStyle: const TextStyle(color: Colors.black38),
-          border: InputBorder.none,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12)
+          ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           suffixIcon: IconButton(
             icon: Icon(
@@ -411,8 +403,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
                 : () => setState(() => _obscurePassword = !_obscurePassword),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:logistics_pro/core/theme/app_colors.dart';
 import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
 import 'package:logistics_pro/features/admin/presentation/widgets/persona_card_widget.dart';
+import 'package:logistics_pro/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
 
 class PersonaPage extends StatefulWidget {
@@ -70,8 +71,15 @@ class _PersonaPageState extends State<PersonaPage> {
       appBar: AppBar(
         backgroundColor: Color(0xFFEFF0FF),
         leading: Icon(Icons.local_shipping , color: AppColors.primary,),
-        title: Text("Logistics Admin", style: Theme.of(context).textTheme.titleMedium
+        title: Text("Logistics Admin", style: Theme.of(context).textTheme.titleMedium,
         ),
+        actions: [
+          IconButton(
+            onPressed: () { context.read<AuthController>().logout();}, 
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Cerrar sesión',
+          )
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0), 
           child: Container(
@@ -116,7 +124,7 @@ class _PersonaPageState extends State<PersonaPage> {
                       if(personaState.status == PersonState.loading && personaState.personaList.isEmpty){
                         return Center(child: CircularProgressIndicator());
                       }
-                      
+
                       //Para el filtro dinámico
                       final empleadosFiltrados = personaState.personaList.where((persona){
                           return persona.nombreApellido.toLowerCase().contains(_filterPersonal.toLowerCase());
@@ -162,19 +170,16 @@ class _PersonaPageState extends State<PersonaPage> {
               ),
             ),
             Positioned(
-              bottom: 50,
-              right: 100,
-              left: 100,
+              bottom: 15,
+              right: 10,
               child: ElevatedButton.icon(
                 onPressed: () => context.push('/edit-person'), 
-                label: Text('Nuevo', style: TextStyle(color: Colors.white, fontSize: 16)),
-                icon: Icon(Icons.person_add, color: Colors.white,),
+                label: Icon(Icons.person_add, color: Colors.white,),
                 style: ElevatedButton.styleFrom(
                   elevation: 4,
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
-                    
-                    borderRadius: BorderRadius.circular(14)
+                    borderRadius: BorderRadius.circular(16)
                   )
                 ),
               )

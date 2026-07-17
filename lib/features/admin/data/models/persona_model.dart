@@ -7,6 +7,7 @@ class PersonaModel {
   final String cargo;
   final String usuario;
   final String? contrasena;
+  final bool? isProject;
 
   const PersonaModel({
     required this.email,
@@ -16,7 +17,8 @@ class PersonaModel {
     required this.experienciaAnios,
     required this.cargo,
     required this.usuario,
-    this.contrasena
+    this.contrasena,
+    this.isProject
   });
 
   // Permite convertir el objeto en un Mapa (Json) para los datos guardados en firebase
@@ -29,6 +31,7 @@ class PersonaModel {
       'usuario': usuario,
       'imageUrl': imageUrl,
       'rol': 'worker',
+      'isProject': false
     };
   }
 
@@ -42,6 +45,7 @@ class PersonaModel {
       cargo: map['cargo'] as String? ?? '',
       usuario: map['usuario'] as String? ?? '',
       imageUrl: map['imageUrl'] as String? ?? '',
+      isProject: map['isProject'] as bool? ?? false
     );
   }
 }

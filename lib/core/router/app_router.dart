@@ -55,11 +55,9 @@ class AppRouter {
           GoRoute(
             path: login,
             builder: (context, state) => const LoginPage(),
-            
           ),
-          GoRoute(
-            path: adminHome,
-            builder: (context, state) {
+          ShellRoute(
+            builder: (context, state, child){
               final adminDataSource = AdminRemoteDatasource();
               final adminRepository = AdminRepositoryImpl(adminDataSource);
 
@@ -68,24 +66,19 @@ class AppRouter {
                   createPersonaUsecase: CreatePersonaUsecase(adminRepository),
                   getPersonalUsecase: GetPersonalUsecase(adminRepository)
                 ),
-                child: const PersonaPage(),
-              ); 
-            } 
-          ),
-          GoRoute(
-            path: editPersonal,
-            builder: (context, state){
-              final adminDatasource = AdminRemoteDatasource();
-              final adminRepository = AdminRepositoryImpl(adminDatasource);
-
-              return ChangeNotifierProvider(
-                create: (_) => PersonaController(
-                  createPersonaUsecase: CreatePersonaUsecase(adminRepository), 
-                  getPersonalUsecase: GetPersonalUsecase(adminRepository)
-                ),
-                child:  CreatePersonalPages(),
+               child: child,
               );
-            }
+            },
+            routes: [
+              GoRoute(
+                path: adminHome,
+                builder: (context, state) => const PersonaPage(),
+              ),
+              GoRoute(
+                path: editPersonal,
+                builder: (context, state) =>  CreatePersonalPages(),
+              ),
+            ]
           ),
           GoRoute(
             path: workHome,

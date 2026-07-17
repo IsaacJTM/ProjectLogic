@@ -8,9 +8,17 @@ class AdminRemoteDatasource {
 
     //Registrar el Firebase Auth y guarda datos en Firestore (Primer método)
     Future<void> createPerson(PersonaModel persona) async{
-      //Para crear el correo en Firebase Auth 
+    try{
+       //Para crear el correo en Firebase Auth 
       final String correoVirtual = persona.email;
       final String password = persona.contrasena!;
+
+      final findUser = await _firestore
+        .collection('usuarios')
+        .doc(persona.email)
+        .get();
+
+      if(findUser.exists) throw Exception('El usuario ya se encuentra registrado');
 
       final UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: correoVirtual, password: password
@@ -21,15 +29,28 @@ class AdminRemoteDatasource {
 
      //Guardar el perfil completo en Firestore
      await _firestore.collection('usuarios').doc(persona.email).set({
-         'uid': uid,
          'nombreApellido': persona.nombreApellido,
          'carrera': persona.carrera,
          'experienciaAnios': persona.experienciaAnios,
          'cargo': persona.cargo,
          'usuario': persona.usuario,
          'imageUrl': persona.imageUrl,
-         'rol' : 'worker'
+         'rol' : 'worker',
+         'isProject': false
      }); 
+    } on FirebaseAuthException catch(e){
+        if (e.code == 'email-already-in-use') {
+          throw Exception('Este correo electrónico ya está siendo utilizado por otro usuario.');
+        } else if (e.code == 'weak-password') {
+          throw Exception('La contraseña proporcionada es muy débil.');
+        } else {
+          throw Exception('Error en Firebase Auth: ${e.message}');
+        }
+    }
+    catch(e){
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+     
     }
 
     Future<List<PersonaModel>> obtenerPersonal() async{

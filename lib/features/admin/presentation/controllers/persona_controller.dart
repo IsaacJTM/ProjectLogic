@@ -62,4 +62,8 @@ class PersonaController extends ChangeNotifier{
   void consumeError(){
     _errorMessage = null;
   }
+
+  void resetState(){
+    _personState = PersonState.initial;
+  }
 }
