@@ -74,13 +74,33 @@ class ExecutionController extends ChangeNotifier {
     _timer?.cancel();
   }
 
+  /// Modifica la UI instantáneamente y luego actualiza Firestore en segundo plano
   void toggleTask(String taskId) {
+    // 1. Buscamos el índice exacto de la tarea en la lista actual
+    final index = _tasks.indexWhere((t) => t.id == taskId);
+    if (index == -1) return;
+
+    // 2. Calculamos su nuevo estado (inverso al actual)
+    final newTaskState = !_tasks[index].done;
+
+    // 3. Actualizamos la lista local y la UI DE INMEDIATO (Optimistic Update)
     _tasks = _tasks.map((t) {
       if (t.id != taskId) return t;
-      final done = !t.done;
-      return t.copyWith(done: done, completedAt: done ? elapsedLabel : null);
+      return t.copyWith(
+        done: newTaskState,
+        completedAt: newTaskState ? elapsedLabel : null,
+      );
     }).toList();
-    notifyListeners();
+
+    notifyListeners(); // ¡La barra de progreso salta al instante en la pantalla!
+
+    // 4. Mandamos a guardar a Firebase en segundo plano sin bloquear la pantalla
+    logisticsRepository.updateTaskStatus(taskId, newTaskState).catchError((
+      error,
+    ) {
+      print('❌ [CONTROLLER ERROR] Falló el guardado en Firebase: $error');
+      // Opcional: Podrías revertir el cambio local si Firebase falla aquí
+    });
   }
 
   void updateTaskNote(String taskId, String note) {

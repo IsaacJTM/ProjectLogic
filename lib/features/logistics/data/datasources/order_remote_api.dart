@@ -146,14 +146,22 @@ class OrderRemoteApi {
 
   Future<void> updateTaskStatus(String taskDocumentId, bool isCompleted) async {
     try {
-      await _firestore
-          .collection('tareas_checklist')
-          .doc(taskDocumentId)
-          .update({
-            'estadoCompletada': isCompleted,
-            'horaCompletado': isCompleted ? "09:35" : null,
-          });
+      // 🕒 Calculamos la hora y minuto real del celular en formato 24h (Ej: "14:25")
+      final now = DateTime.now();
+      final horaReal =
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+      await _firestore.collection('tareas_checklist').doc(taskDocumentId).update({
+        'estadoCompletada': isCompleted,
+        // ✅ CORREGIDO: Si se completa, guarda la hora real del dispositivo; si se desmarca, queda null
+        'horaCompletado': isCompleted ? horaReal : null,
+      });
+
+      print(
+        '✅ [FIREBASE] Tarea $taskDocumentId actualizada con éxito a: $isCompleted a las $horaReal',
+      );
     } catch (e) {
+      print('❌ [FIREBASE ERROR] Falló la actualización de la tarea: $e');
       throw Exception('No se pudo actualizar la tarea: $e');
     }
   }

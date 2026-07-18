@@ -8,7 +8,6 @@ import '../../domain/repositories/logistics_repository.dart';
 import '../datasources/media_upload_api.dart';
 import '../datasources/order_remote_api.dart';
 import '../datasources/route_gps_api.dart';
-import '../models/checklist_task_model.dart';
 
 class LogisticsRepositoryImpl implements LogisticsRepository {
   final OrderRemoteApi orderRemoteApi;
@@ -20,14 +19,7 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     required this.routeGpsApi,
     required this.mediaUploadApi,
   });
-  /*
-  static const _mockChecklist = [
-    ChecklistTaskModel(id: 't1', name: 'Revisión de fugas de gas'),
-    ChecklistTaskModel(id: 't2', name: 'Limpieza de condensador'),
-    ChecklistTaskModel(id: 't3', name: 'Carga de Gas R410A'),
-    ChecklistTaskModel(id: 't4', name: 'Pruebas de presión térmica'),
-  ];
-*/
+
   @override
   Future<List<OrderEntity>> getActiveOrders(String technicianId) {
     return orderRemoteApi.fetchActiveOrders(technicianId);
@@ -102,5 +94,19 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     List<int> bytes,
   ) {
     return mediaUploadApi.upload(orderId: orderId, tag: phaseTag, bytes: bytes);
+  }
+
+  @override
+  Future<void> updateTaskStatus(String taskId, bool isCompleted) async {
+    try {
+      print(
+        '🚀 [REPOSITORIO] Solicitando actualizar tarea: $taskId a estado: $isCompleted',
+      );
+      // Llama de forma directa a la función que ya pusimos en tu OrderRemoteApi
+      await orderRemoteApi.updateTaskStatus(taskId, isCompleted);
+    } catch (e) {
+      print('❌ [REPOSITORIO ERROR] Falló la actualización de la tarea: $e');
+      throw Exception('Error al actualizar tarea en el repositorio: $e');
+    }
   }
 }

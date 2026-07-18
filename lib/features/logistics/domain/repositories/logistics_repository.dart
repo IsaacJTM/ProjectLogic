@@ -15,7 +15,7 @@ abstract class LogisticsRepository {
   });
 
   Future<List<ChecklistTaskEntity>> getChecklistTasks(String orderId);
-
+  Future<void> updateTaskStatus(String taskId, bool isCompleted);
   Future<void> submitChecklist(String orderId, List<ChecklistTaskEntity> tasks);
 
   Stream<CoordinateEntity> watchTechnicianRoute(String orderId);
