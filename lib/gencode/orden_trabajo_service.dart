@@ -177,7 +177,6 @@ class OrdenTrabajoService {
     }
   }
 
-  /// Obtener texto del estado de fase
   String _getEstadoFaseText(int fase) {
     switch (fase) {
       case 0:
@@ -195,7 +194,6 @@ class OrdenTrabajoService {
     }
   }
 
-  /// Verificar si ya existen órdenes en Firestore
   Future<bool> existenOrdenes() async {
     try {
       final snapshot = await _firestore
@@ -371,7 +369,6 @@ class OrdenTrabajoService {
     }
   }
 
-  /// Obtener estadísticas de órdenes
   Future<Map<String, dynamic>> getEstadisticasOrdenes() async {
     try {
       final ordenes = await getAllOrdenes();

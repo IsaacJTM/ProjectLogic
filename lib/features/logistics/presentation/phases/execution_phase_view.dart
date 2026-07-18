@@ -20,7 +20,6 @@ class _ExecutionPhaseViewState extends State<ExecutionPhaseView> {
       final orderEntity = masterController.order;
 
       if (orderEntity != null) {
-        // 2. ✅ SOLUCIONADO: Pasamos el id y la fecha real de creación (createdAt)
         context.read<ExecutionController>().loadTasksFromFirestore(
           widget.orderId,
           orderEntity.createdAt,

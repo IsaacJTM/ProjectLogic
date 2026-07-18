@@ -10,7 +10,6 @@ class ExecutionController extends ChangeNotifier {
   final LogisticsRepository logisticsRepository;
 
   Timer? _timer;
-  //final Stopwatch _stopwatch = Stopwatch();
 
   ExecutionController({
     required this.submitChecklistUseCase,
@@ -77,14 +76,12 @@ class ExecutionController extends ChangeNotifier {
     notifyListeners();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      // Restamos el milisegundo actual menos la fecha de creación de ayer
       _elapsed = DateTime.now().difference(startTime);
       notifyListeners();
     });
   }
 
   void stopExecutionClock() {
-    //_stopwatch.stop();
     _timer?.cancel();
   }
 
