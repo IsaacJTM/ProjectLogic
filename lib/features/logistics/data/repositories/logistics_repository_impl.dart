@@ -28,14 +28,24 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
   @override
   Future<OrderEntity> getOrderById(String orderId) async {
     try {
-      final orders = await orderRemoteApi.fetchActiveOrders('');
+      final targetNum = int.tryParse(orderId) ?? orderId;
+      final query = await FirebaseFirestore.instance
+          .collection('ordenes_trabajo')
+          .where('nroOrden', isEqualTo: targetNum)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('No se encontró la orden con nroOrden: $orderId');
+      }
+
+      final userId = query.docs.first.data()['idUsuario'] ?? '';
+      final orders = await orderRemoteApi.fetchActiveOrders(userId);
       return orders.firstWhere(
         (o) => o.id == orderId,
         orElse: () =>
             throw Exception('No se encontró la orden con ID: $orderId'),
       );
     } catch (e) {
-      // Si falla o la lista está vacía, manejamos el error limpiamente
       throw Exception('Error al obtener la orden por ID: $e');
     }
   }
@@ -79,7 +89,7 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     String orderId,
     List<ChecklistTaskEntity> tasks,
   ) async {
-    //await Future.delayed(const Duration(milliseconds: 600));
+    // Aquí
   }
 
   @override
@@ -97,15 +107,18 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
   }
 
   @override
-  Future<void> updateTaskStatus(String taskId, bool isCompleted) async {
+  Future<void> updateTaskStatus(
+    String taskId,
+    bool isCompleted, [
+    String? elapsedMinutes,
+  ]) async {
     try {
-      print(
-        '🚀 [REPOSITORIO] Solicitando actualizar tarea: $taskId a estado: $isCompleted',
+      await orderRemoteApi.updateTaskStatus(
+        taskId,
+        isCompleted,
+        elapsedMinutes,
       );
-      // Llama de forma directa a la función que ya pusimos en tu OrderRemoteApi
-      await orderRemoteApi.updateTaskStatus(taskId, isCompleted);
     } catch (e) {
-      print('❌ [REPOSITORIO ERROR] Falló la actualización de la tarea: $e');
       throw Exception('Error al actualizar tarea en el repositorio: $e');
     }
   }

@@ -10,7 +10,7 @@ class ExecutionController extends ChangeNotifier {
   final LogisticsRepository logisticsRepository;
 
   Timer? _timer;
-  final Stopwatch _stopwatch = Stopwatch();
+  //final Stopwatch _stopwatch = Stopwatch();
 
   ExecutionController({
     required this.submitChecklistUseCase,
@@ -32,10 +32,21 @@ class ExecutionController extends ChangeNotifier {
   double get progress =>
       _tasks.isEmpty ? 0 : _tasks.where((t) => t.done).length / _tasks.length;
 
-  String get elapsedLabel =>
-      '${_elapsed.inMinutes.toString().padLeft(2, '0')}:${(_elapsed.inSeconds % 60).toString().padLeft(2, '0')}';
+  String get elapsedLabel {
+    final hours = _elapsed.inHours;
+    final minutes = _elapsed.inMinutes % 60;
+    final seconds = _elapsed.inSeconds % 60;
 
-  Future<void> loadTasksFromFirestore(String orderId) async {
+    if (hours > 0) {
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> loadTasksFromFirestore(
+    String orderId,
+    DateTime orderCreatedAt,
+  ) async {
     if (_tasks.isNotEmpty) return;
 
     _isLoading = true;
@@ -44,9 +55,11 @@ class ExecutionController extends ChangeNotifier {
     try {
       final remoteTasks = await logisticsRepository.getChecklistTasks(orderId);
       _tasks = remoteTasks;
-      startExecutionClock();
+
+      // Enciende el reloj pasándole la fecha de ayer
+      startExecutionClock(orderCreatedAt);
     } catch (e) {
-      print('Error al cargar tareas desde Firestore: $e');
+      print('❌ Error al cargar tareas: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -58,19 +71,22 @@ class ExecutionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void startExecutionClock() {
-    _stopwatch
-      ..reset()
-      ..start();
+  void startExecutionClock(DateTime startTime) {
     _timer?.cancel();
+
+    // Ejecutamos el primer cálculo de inmediato para evitar el parpadeo de 00:00
+    _elapsed = DateTime.now().difference(startTime);
+    notifyListeners();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _elapsed = _stopwatch.elapsed;
+      // Restamos el milisegundo actual menos la fecha de creación de ayer
+      _elapsed = DateTime.now().difference(startTime);
       notifyListeners();
     });
   }
 
   void stopExecutionClock() {
-    _stopwatch.stop();
+    //_stopwatch.stop();
     _timer?.cancel();
   }
 
