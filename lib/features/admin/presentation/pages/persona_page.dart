@@ -150,7 +150,7 @@ class _PersonaPageState extends State<PersonaPage> {
                       return GridView.builder(
                         padding: const EdgeInsets.all(4),// Espacio extra para que no tape el botón
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
+                          crossAxisCount: 2, //Numeo de columnas
                           mainAxisSpacing: 8,
                           crossAxisSpacing: 8,
                           childAspectRatio: 0.82
@@ -159,7 +159,10 @@ class _PersonaPageState extends State<PersonaPage> {
                         itemBuilder: (context, index){
                           return PersonaCardWidget(
                             personal: empleadosFiltrados[index],
-                            onCarPressed: (){},
+                            onCarPressed: (){
+                              print(empleadosFiltrados[index]);
+                              context.push('/create-orden', extra: empleadosFiltrados[index]);
+                            },
                             onEditPressed: (){},
                           );
                         }

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:logistics_pro/features/admin/domain/entities/actividad_checklist_entity.dart';
+import 'package:logistics_pro/features/admin/domain/entities/tarea_checklist_entity.dart';
 
-class ActividadChecklistModel extends ActividadChecklistEntity {
-  ActividadChecklistModel({
+class TareaChecklistModel extends TareaChecklistEntity {
+  TareaChecklistModel({
     required super.idTarea,
     required super.idOrden, 
     required super.descripcion,

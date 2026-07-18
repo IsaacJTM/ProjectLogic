@@ -1,10 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logistics_pro/features/admin/data/datasources/admin_remote_datasource.dart';
+import 'package:logistics_pro/features/admin/data/datasources/ordenes_remote_datasource.dart';
+import 'package:logistics_pro/features/admin/data/models/persona_model.dart';
 import 'package:logistics_pro/features/admin/data/repositories/admin_repository_impl.dart';
+import 'package:logistics_pro/features/admin/domain/usecases/create_orden_usecase.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/create_persona_usecase.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecase.dart';
+import 'package:logistics_pro/features/admin/presentation/controllers/ordenes_controller.dart';
 import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
+import 'package:logistics_pro/features/admin/presentation/pages/agregar_oden_page.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/submit_execution_checklist_usecase.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/track_technician_route_usecase.dart';
 import 'package:logistics_pro/features/logistics/presentation/controllers/master_order/master_order_controller.dart';
@@ -28,6 +33,7 @@ class AppRouter {
   static const String adminHome = '/admin-home';
   static const String workHome = '/worker-home';
   static const String editPersonal = '/edit-person';
+  static const String createOrden = '/create-orden';
 
   AppRouter._();
 
@@ -54,36 +60,50 @@ class AppRouter {
         return null;
       },
       routes: [
-        GoRoute(path: login, builder: (context, state) => const LoginPage()),
         GoRoute(
-          path: adminHome,
-          builder: (context, state) {
-            final adminDataSource = AdminRemoteDatasource();
-            final adminRepository = AdminRepositoryImpl(adminDataSource);
-
-            return ChangeNotifierProvider(
-              create: (_) => PersonaController(
-                createPersonaUsecase: CreatePersonaUsecase(adminRepository),
-                getPersonalUsecase: GetPersonalUsecase(adminRepository),
-              ),
-              child: const PersonaPage(),
-            );
-          },
+          path: login, 
+          builder: (context, state) => const LoginPage()
         ),
-        GoRoute(
-          path: editPersonal,
-          builder: (context, state) {
-            final adminDatasource = AdminRemoteDatasource();
-            final adminRepository = AdminRepositoryImpl(adminDatasource);
+        ShellRoute(
+          builder: (context, state, child){
+            final adminDataSource = AdminRemoteDatasource();
+            final ordenDataSource = OrdenesRemoteDatasource();
+            final adminRepository = AdminRepositoryImpl(adminDataSource,ordenDataSource );
 
-            return ChangeNotifierProvider(
-              create: (_) => PersonaController(
-                createPersonaUsecase: CreatePersonaUsecase(adminRepository),
-                getPersonalUsecase: GetPersonalUsecase(adminRepository),
-              ),
-              child: CreatePersonalPages(),
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (_) => PersonaController(
+                    createPersonaUsecase: CreatePersonaUsecase(adminRepository),
+                    getPersonalUsecase: GetPersonalUsecase(adminRepository)
+                  ),
+                ),
+                ChangeNotifierProvider(
+                  create: (_) => OrdenesController(
+                    CreateOrdenUsecase(adminRepository)
+                  ),
+                )
+              ],
+              child: child,
             );
           },
+          routes: [
+            GoRoute(
+              path: adminHome,
+              builder: (context, state) => PersonaPage(),
+            ),
+            GoRoute(
+              path: editPersonal,
+              builder: (context, state) => CreatePersonalPages(),
+            ),
+            GoRoute(
+              path: createOrden,
+              builder: (context, state) {
+                final personalSeleccionado = state.extra as PersonaModel;
+                return AgregarOrdenPage(tecnico: personalSeleccionado);
+              }
+            )
+          ]
         ),
         GoRoute(
           path: workHome,
