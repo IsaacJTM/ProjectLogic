@@ -8,7 +8,6 @@ import '../../domain/repositories/logistics_repository.dart';
 import '../datasources/media_upload_api.dart';
 import '../datasources/order_remote_api.dart';
 import '../datasources/route_gps_api.dart';
-import '../models/checklist_task_model.dart';
 
 class LogisticsRepositoryImpl implements LogisticsRepository {
   final OrderRemoteApi orderRemoteApi;
@@ -20,14 +19,7 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     required this.routeGpsApi,
     required this.mediaUploadApi,
   });
-  /*
-  static const _mockChecklist = [
-    ChecklistTaskModel(id: 't1', name: 'Revisión de fugas de gas'),
-    ChecklistTaskModel(id: 't2', name: 'Limpieza de condensador'),
-    ChecklistTaskModel(id: 't3', name: 'Carga de Gas R410A'),
-    ChecklistTaskModel(id: 't4', name: 'Pruebas de presión térmica'),
-  ];
-*/
+
   @override
   Future<List<OrderEntity>> getActiveOrders(String technicianId) {
     return orderRemoteApi.fetchActiveOrders(technicianId);
@@ -36,14 +28,24 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
   @override
   Future<OrderEntity> getOrderById(String orderId) async {
     try {
-      final orders = await orderRemoteApi.fetchActiveOrders('');
+      final targetNum = int.tryParse(orderId) ?? orderId;
+      final query = await FirebaseFirestore.instance
+          .collection('ordenes_trabajo')
+          .where('nroOrden', isEqualTo: targetNum)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('No se encontró la orden con nroOrden: $orderId');
+      }
+
+      final userId = query.docs.first.data()['idUsuario'] ?? '';
+      final orders = await orderRemoteApi.fetchActiveOrders(userId);
       return orders.firstWhere(
         (o) => o.id == orderId,
         orElse: () =>
             throw Exception('No se encontró la orden con ID: $orderId'),
       );
     } catch (e) {
-      // Si falla o la lista está vacía, manejamos el error limpiamente
       throw Exception('Error al obtener la orden por ID: $e');
     }
   }
@@ -87,7 +89,7 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     String orderId,
     List<ChecklistTaskEntity> tasks,
   ) async {
-    //await Future.delayed(const Duration(milliseconds: 600));
+    // Aquí
   }
 
   @override
@@ -102,5 +104,22 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     List<int> bytes,
   ) {
     return mediaUploadApi.upload(orderId: orderId, tag: phaseTag, bytes: bytes);
+  }
+
+  @override
+  Future<void> updateTaskStatus(
+    String taskId,
+    bool isCompleted, [
+    String? elapsedMinutes,
+  ]) async {
+    try {
+      await orderRemoteApi.updateTaskStatus(
+        taskId,
+        isCompleted,
+        elapsedMinutes,
+      );
+    } catch (e) {
+      throw Exception('Error al actualizar tarea en el repositorio: $e');
+    }
   }
 }

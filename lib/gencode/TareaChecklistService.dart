@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class TareaChecklistService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Registrar 40 tareas de checklist en Firestore
   Future<void> registrarTareasChecklist() async {
     try {
       final ordenesSnapshot = await _firestore
@@ -18,7 +17,6 @@ class TareaChecklistService {
         return int.parse(doc.id);
       }).toList();
 
-      // 40 tareas predefinidas (4 por orden, 10 órdenes)
       final List<Map<String, dynamic>> tareas = [
         {
           'idTarea': 1,

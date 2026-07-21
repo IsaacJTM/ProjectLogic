@@ -1,21 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:logistics_pro/core/router/app_router.dart';
-import 'package:logistics_pro/features/admin/data/datasources/admin_remote_datasource.dart';
-import 'package:logistics_pro/features/admin/data/repositories/admin_repository_impl.dart';
-import 'package:logistics_pro/features/admin/domain/usecases/create_persona_usecase.dart';
-import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecase.dart';
-import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
 import 'package:logistics_pro/features/auth/data/datasources/auth_remote_api.dart';
 import 'package:logistics_pro/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:logistics_pro/features/auth/domain/usecases/login_usecase.dart';
 import 'package:logistics_pro/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:logistics_pro/features/logistics/data/datasources/media_upload_api.dart';
 import 'package:logistics_pro/firebase_options.dart';
 import 'package:logistics_pro/gencode/TareaChecklistService.dart';
-import 'package:logistics_pro/gencode/orden_trabajo_service.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/presentation/pages/login_page.dart';
 import 'package:provider/provider.dart';
 
 void main() async {

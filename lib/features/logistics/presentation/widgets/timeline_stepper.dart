@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../domain/entities/order_phase.dart';
 
 class TimelineStepper extends StatelessWidget {

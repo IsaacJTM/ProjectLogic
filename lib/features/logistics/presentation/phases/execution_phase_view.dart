@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_pro/features/logistics/presentation/controllers/master_order/master_order_controller.dart';
 import 'package:provider/provider.dart';
 import '../controllers/phase_3_execution/execution_controller.dart';
 
@@ -14,11 +15,16 @@ class _ExecutionPhaseViewState extends State<ExecutionPhaseView> {
   @override
   void initState() {
     super.initState();
-    // Al entrar a la fase, llamamos al nuevo método encargado de Firebase
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ExecutionController>().loadTasksFromFirestore(
-        widget.orderId,
-      );
+      final masterController = context.read<MasterOrderController>();
+      final orderEntity = masterController.order;
+
+      if (orderEntity != null) {
+        context.read<ExecutionController>().loadTasksFromFirestore(
+          widget.orderId,
+          orderEntity.createdAt,
+        );
+      }
     });
   }
 
@@ -26,7 +32,6 @@ class _ExecutionPhaseViewState extends State<ExecutionPhaseView> {
   Widget build(BuildContext context) {
     return Consumer<ExecutionController>(
       builder: (context, controller, _) {
-        // Mostramos carga si está consultando a la base de datos
         if (controller.isLoading) {
           return const Center(
             child: Padding(
@@ -90,7 +95,6 @@ class _ExecutionPhaseViewState extends State<ExecutionPhaseView> {
                         ? Text(task.note!, style: const TextStyle(fontSize: 12))
                         : null,
                     value: task.done,
-                    // Enviamos el id (String) tal como lo pide tu método toggleTask
                     onChanged: (_) {
                       controller.toggleTask(task.id);
                     },

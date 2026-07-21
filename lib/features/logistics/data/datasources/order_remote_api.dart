@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logistics_pro/features/logistics/data/models/checklist_task_model.dart';
 import '../../domain/entities/order_phase.dart';
@@ -6,6 +5,7 @@ import '../models/order_model.dart';
 
 class OrderRemoteApi {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   Future<List<OrderModel>> fetchActiveOrders(String technicianId) async {
     try {
       final querySnapshot = await _firestore
@@ -43,6 +43,14 @@ class OrderRemoteApi {
             currentPhase = OrderPhase.assigned;
         }
 
+        final Timestamp? fechaInicioEjecucion =
+            data['fechaInicioEjecucion'] as Timestamp?;
+        final Timestamp? fechaCreacion = data['fechaCreacion'] as Timestamp?;
+        final DateTime tiempoReferencia =
+            fechaInicioEjecucion?.toDate() ??
+            fechaCreacion?.toDate() ??
+            DateTime.now();
+
         return OrderModel(
           id: data['nroOrden']?.toString() ?? doc.id,
           title: data['notasGenerales'] ?? 'Sin descripción',
@@ -50,9 +58,7 @@ class OrderRemoteApi {
           address: 'Dirección pendiente de cliente',
           assignedTechnicianId: data['idUsuario'] ?? technicianId,
           phase: currentPhase,
-          createdAt: data['fechaCreacion'] != null
-              ? (data['fechaCreacion'] as Timestamp).toDate()
-              : DateTime.now(),
+          createdAt: tiempoReferencia,
         );
       }).toList();
     } catch (e) {
@@ -98,14 +104,20 @@ class OrderRemoteApi {
       }
 
       final docRef = querySnapshot.docs.first.reference;
-
-      await docRef.update({
+      final Map<String, dynamic> updates = {
         'estadoFase': faseNum,
         if (note != null) 'notasGenerales': note,
-      });
+        if (targetPhase == OrderPhase.execution)
+          'fechaInicioEjecucion': FieldValue.serverTimestamp(),
+      };
+
+      await docRef.update(updates);
 
       final updatedDoc = await docRef.get();
       final data = updatedDoc.data()!;
+      final Timestamp? inicioEjecucion =
+          data['fechaInicioEjecucion'] as Timestamp?;
+      final Timestamp? fechaCreacion = data['fechaCreacion'] as Timestamp?;
 
       return OrderModel(
         id: orderId,
@@ -114,7 +126,10 @@ class OrderRemoteApi {
         address: 'Dirección pendiente',
         assignedTechnicianId: data['idUsuario'] ?? '',
         phase: targetPhase,
-        createdAt: DateTime.now(),
+        createdAt:
+            inicioEjecucion?.toDate() ??
+            fechaCreacion?.toDate() ??
+            DateTime.now(),
       );
     } catch (e) {
       throw Exception('Error al cambiar de fase en Firestore: $e');
@@ -134,24 +149,26 @@ class OrderRemoteApi {
         return [];
       }
 
-      final listaTareas = querySnapshot.docs.map((doc) {
+      return querySnapshot.docs.map((doc) {
         return ChecklistTaskModel.fromFirestore(doc.id, doc.data());
       }).toList();
-
-      return listaTareas;
     } catch (e) {
       throw Exception('Error al obtener el checklist de Firestore: $e');
     }
   }
 
-  Future<void> updateTaskStatus(String taskDocumentId, bool isCompleted) async {
+  Future<void> updateTaskStatus(
+    String taskDocumentId,
+    bool isCompleted, [
+    String? elapsedMinutes,
+  ]) async {
     try {
       await _firestore
           .collection('tareas_checklist')
           .doc(taskDocumentId)
           .update({
             'estadoCompletada': isCompleted,
-            'horaCompletado': isCompleted ? "09:35" : null,
+            'horaCompletado': isCompleted ? elapsedMinutes : null,
           });
     } catch (e) {
       throw Exception('No se pudo actualizar la tarea: $e');
