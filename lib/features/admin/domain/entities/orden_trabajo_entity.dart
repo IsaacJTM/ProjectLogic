@@ -1,4 +1,4 @@
-import 'package:logistics_pro/features/admin/domain/entities/actividad_checklist_entity.dart';
+import 'package:logistics_pro/features/admin/domain/entities/tarea_checklist_entity.dart';
 
 class OrdenTrabajoEntity {
   final String idOrden;
@@ -15,7 +15,7 @@ class OrdenTrabajoEntity {
   final String nombreLugar;
   final double latitud;
   final double longitud;
-  final List<ActividadChecklistEntity> actividades;
+  final List<TareaChecklistEntity> actividades;
 
   OrdenTrabajoEntity({
     required this.idOrden,

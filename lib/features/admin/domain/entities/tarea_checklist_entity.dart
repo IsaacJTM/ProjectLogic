@@ -1,4 +1,4 @@
-class ActividadChecklistEntity {
+class TareaChecklistEntity {
   final String idTarea;
   final String idOrden;
   final DateTime? fechaCreacion;
@@ -7,7 +7,7 @@ class ActividadChecklistEntity {
   final String? notaTarea;
   final bool estadoCompletado;
 
-  ActividadChecklistEntity({
+  TareaChecklistEntity({
     required this.idTarea,
     required this.idOrden,
     this.fechaCreacion,
