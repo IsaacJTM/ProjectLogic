@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:logistics_pro/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../domain/entities/order_phase.dart';
 import '../controllers/master_order/master_order_controller.dart';
 import '../controllers/phase_3_execution/execution_controller.dart';
@@ -75,9 +79,111 @@ class _DashboardBodyState extends State<_DashboardBody> {
     }
   }
 
+  /// Cuadro de diálogo institucional para confirmar la salida segura del técnico
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('¿Cerrar Sesión?'),
+          content: const Text(
+            '¿Estás seguro de que deseas salir de Logistics Pro?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                try {
+                  // ✅ CORREGIDO: Quitamos el 'await' ya que 'logout()' es síncrono (void)
+                  context.read<AuthController>().logout();
+
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
+                } catch (e) {
+                  debugPrint('Error al cerrar sesión: $e');
+                }
+              },
+              child: const Text(
+                'Salir',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(
+        0xFFF8FAFC,
+      ), // Fondo claro y pulcro para el Scaffold
+      // 🛠️ BARRA SUPERIOR INSTITUCIONAL (Estilo idéntico a Screenshot_4.png)
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: false, // Evita la flecha por defecto
+        // Línea divisoria inferior muy sutil para igualar el estilo web
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: Colors.grey.withOpacity(0.15), height: 1.0),
+        ),
+
+        // Icono de camión azul a la izquierda
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16.0),
+          child: Icon(
+            Icons.local_shipping,
+            color: Color(0xFF1E40AF), // El azul rey corporativo
+            size: 28,
+          ),
+        ),
+        leadingWidth: 44,
+
+        // Título de la Aplicación en la AppBar
+        title: const Text(
+          'Logistics Pro',
+          style: TextStyle(
+            color: Color(0xFF1E40AF),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            letterSpacing: 0.2,
+          ),
+        ),
+
+        // Botón de Salir (Cerrar Sesión) en el extremo derecho
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: IconButton(
+              icon: const Icon(
+                Icons.exit_to_app,
+                color: Color(0xFF334155), // Gris carbón profesional
+                size: 28,
+              ),
+              tooltip: 'Cerrar Sesión',
+              onPressed: () => _showLogoutDialog(context),
+            ),
+          ),
+        ],
+      ),
+
       body: Consumer<MasterOrderController>(
         builder: (context, masterState, _) {
           if (masterState.status == MasterOrderStatus.loading) {
@@ -157,6 +263,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
               CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
+                  // Mantiene el título "Orden #1002" flotante y elegante
                   SliverAppBar(
                     expandedHeight: 100,
                     pinned: true,
@@ -165,7 +272,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
                     flexibleSpace: FlexibleSpaceBar(
                       titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
                       title: Text(
-                        'Orden #$actualOrderId', // ✅ CAMBIADO: Título dinámico real
+                        'Orden #$actualOrderId',
                         style: const TextStyle(
                           color: Color(0xFF0F172A),
                           fontWeight: FontWeight.w900,

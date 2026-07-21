@@ -12,7 +12,6 @@ class AuthRemoteApi {
     required String email,
     required String password,
   }) async {
-    //await Future.delayed(const Duration(milliseconds: 900));
     try {
       final UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),

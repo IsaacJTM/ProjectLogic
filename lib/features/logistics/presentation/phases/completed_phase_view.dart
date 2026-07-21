@@ -15,14 +15,12 @@ class _CompletedPhaseViewState extends State<CompletedPhaseView> {
 
   Future<void> _collectSignature() async {
     setState(() => _status = _CompletedStatus.processing);
-    //await Future.delayed(const Duration(milliseconds: 800));
     await _generateSummary();
   }
 
   Future<void> _generateSummary() async {
     if (!mounted) return;
     setState(() => _status = _CompletedStatus.processing);
-    //await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     setState(() {
       _summary = 'Orden completada exitosamente.';
