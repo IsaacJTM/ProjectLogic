@@ -5,8 +5,7 @@ import 'package:logistics_pro/features/admin/data/models/persona_model.dart';
 class PersonaCardWidget extends StatelessWidget {
   final PersonaModel personal;
   final VoidCallback? onCarPressed;
-  final VoidCallback? onEditPressed;
-  PersonaCardWidget({super.key, required this.personal, this.onCarPressed, this.onEditPressed});
+  PersonaCardWidget({super.key, required this.personal, this.onCarPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +16,7 @@ class PersonaCardWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryDark.withOpacity(0.1),
@@ -27,13 +26,13 @@ class PersonaCardWidget extends StatelessWidget {
           ),
         ]
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
+      child: InkWell(
+        onTap: onCarPressed,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(4),
+              padding: EdgeInsets.all(2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: pintar ? Border.all(color: AppColors.secundaryColor, width: 2) : Border.all(color: Colors.blue, width: 2) 
@@ -52,39 +51,10 @@ class PersonaCardWidget extends StatelessWidget {
             Text(
               personal.cargo, 
               style: const TextStyle(fontSize: 15, color: Color(0xFF1E272C))
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _builBoton(icon: Icons.folder_shared, onPressed:  onCarPressed),
-                const SizedBox(width: 8),
-                _builBoton(icon: Icons.edit, onPressed:  onEditPressed),
-              ],
-            )
-          
+            ),          
           ],
         ),
       ),
     );
   }
-}
-
-Widget _builBoton({
- required IconData icon,
- required VoidCallback? onPressed
-}){
-  return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(4),
-          color: AppColors.primaryBoton,
-      ),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon),  
-         highlightColor: Colors.transparent,  
-      ),
-  );
 }

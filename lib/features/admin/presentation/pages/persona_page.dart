@@ -151,19 +151,16 @@ class _PersonaPageState extends State<PersonaPage> {
                         padding: const EdgeInsets.all(4),// Espacio extra para que no tape el botón
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2, //Numeo de columnas
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: 0.82
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
                         ), 
                         itemCount: empleadosFiltrados.length,
                         itemBuilder: (context, index){
                           return PersonaCardWidget(
                             personal: empleadosFiltrados[index],
                             onCarPressed: (){
-                              print(empleadosFiltrados[index]);
-                              context.push('/create-orden', extra: empleadosFiltrados[index]);
+                              context.push('/create-orden');
                             },
-                            onEditPressed: (){},
                           );
                         }
                       );
@@ -173,11 +170,14 @@ class _PersonaPageState extends State<PersonaPage> {
               ),
             ),
             Positioned(
-              bottom: 15,
-              right: 10,
+              bottom: 50,
+              right: 30,
+              left: 30,
+              height: 56,
               child: ElevatedButton.icon(
                 onPressed: () => context.push('/edit-person'), 
-                label: Icon(Icons.person_add, color: Colors.white,),
+                icon:  Icon(Icons.person_add_alt, color: Colors.white, size: 26),
+                label: Text("NUEVO PERSONAL", style: TextStyle(color: Colors.white, fontSize: 16)),
                 style: ElevatedButton.styleFrom(
                   elevation: 4,
                   backgroundColor: AppColors.primary,

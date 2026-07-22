@@ -10,8 +10,7 @@ import '../../domain/entities/orden_trabajo_entity.dart';
 import '../../data/models/persona_model.dart';
 
 class AgregarOrdenPage extends StatefulWidget {
-  final PersonaModel tecnico;
-  const AgregarOrdenPage({super.key, required this.tecnico});
+  const AgregarOrdenPage({super.key});
 
   @override
   State<AgregarOrdenPage> createState() => _AgregarOrdenPageState();
@@ -132,7 +131,7 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     final nuevaOrdenTrabajo = OrdenTrabajoEntity(
       idOrden: generatedIdOrden,
       idCliente: _clienteSeleccionadoId!,
-      idUsuario: widget.tecnico.usuario,
+      idUsuario: 'Tecnicao',
       nroOrden: 1001 + (DateTime.now().millisecond), // Número autogenerado para el ejemplo
       estadoFase: 4, // Estado Base de tu captura
       fechaCreacion: DateTime.now(),

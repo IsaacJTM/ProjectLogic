@@ -10,6 +10,7 @@ import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecas
 import 'package:logistics_pro/features/admin/presentation/controllers/ordenes_controller.dart';
 import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
 import 'package:logistics_pro/features/admin/presentation/pages/agregar_oden_page.dart';
+import 'package:logistics_pro/features/admin/presentation/pages/main_shell.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/submit_execution_checklist_usecase.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/track_technician_route_usecase.dart';
 import 'package:logistics_pro/features/logistics/presentation/controllers/master_order/master_order_controller.dart';
@@ -84,7 +85,7 @@ class AppRouter {
                   ),
                 )
               ],
-              child: child,
+              child: MainShell(child: child),
             );
           },
           routes: [
@@ -98,10 +99,7 @@ class AppRouter {
             ),
             GoRoute(
               path: createOrden,
-              builder: (context, state) {
-                final personalSeleccionado = state.extra as PersonaModel;
-                return AgregarOrdenPage(tecnico: personalSeleccionado);
-              }
+              builder: (context, state) => AgregarOrdenPage()
             )
           ]
         ),
