@@ -159,7 +159,9 @@ class _PersonaPageState extends State<PersonaPage> {
                           return PersonaCardWidget(
                             personal: empleadosFiltrados[index],
                             onCarPressed: (){
-                              context.push('/create-orden');
+                              context.push('/edit_person', 
+                              extra: empleadosFiltrados[index]
+                            );
                             },
                           );
                         }
@@ -175,7 +177,7 @@ class _PersonaPageState extends State<PersonaPage> {
               left: 30,
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: () => context.push('/edit-person'), 
+                onPressed: () => context.push('/create_person'), 
                 icon:  Icon(Icons.person_add_alt, color: Colors.white, size: 26),
                 label: Text("NUEVO PERSONAL", style: TextStyle(color: Colors.white, fontSize: 16)),
                 style: ElevatedButton.styleFrom(

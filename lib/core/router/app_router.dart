@@ -1,15 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logistics_pro/features/admin/data/datasources/admin_remote_datasource.dart';
-import 'package:logistics_pro/features/admin/data/datasources/ordenes_remote_datasource.dart';
 import 'package:logistics_pro/features/admin/data/models/persona_model.dart';
-import 'package:logistics_pro/features/admin/data/repositories/admin_repository_impl.dart';
-import 'package:logistics_pro/features/admin/domain/usecases/create_orden_usecase.dart';
-import 'package:logistics_pro/features/admin/domain/usecases/create_persona_usecase.dart';
-import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecase.dart';
-import 'package:logistics_pro/features/admin/presentation/controllers/ordenes_controller.dart';
-import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
 import 'package:logistics_pro/features/admin/presentation/pages/agregar_oden_page.dart';
+import 'package:logistics_pro/features/admin/presentation/pages/editar_perfil_page.dart';
+import 'package:logistics_pro/features/admin/presentation/pages/lista_ordenes_page.dart';
 import 'package:logistics_pro/features/admin/presentation/pages/main_shell.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/submit_execution_checklist_usecase.dart';
 import 'package:logistics_pro/features/logistics/domain/usecases/track_technician_route_usecase.dart';
@@ -29,19 +21,19 @@ import 'package:logistics_pro/features/logistics/data/datasources/route_gps_api.
 import 'package:logistics_pro/features/logistics/data/repositories/logistics_repository_impl.dart';
 import 'package:logistics_pro/features/logistics/presentation/pages/logistics_dashboard_page.dart';
 
-// 🚀 IMPORTANTE: Agregamos la importación de tu nueva pantalla de lista
+// 🚀 IMPORTACIÓN DE LA NUEVA PANTALLA DE ÓRDENES
 import 'package:logistics_pro/features/logistics/presentation/pages/worker_orders_page.dart';
 
 class AppRouter {
   static const String login = '/login';
   static const String adminHome = '/admin-home';
   static const String workHome = '/worker-home';
-
-  // 🚀 1. NUEVA RUTA PARA EL DASHBOARD DE LA ORDEN
+  // 🚀 NUEVA RUTA PARA EL DASHBOARD
   static const String workDashboard = '/worker-dashboard/:orderId';
-
-  static const String editPersonal = '/edit-person';
+  static const String crearPersonal = '/create_person';
+  static const String editPersonal = '/edit_person';
   static const String createOrden = '/create-orden';
+  static const String listaOrdenes = '/list-ordens';
 
   AppRouter._();
 
@@ -70,47 +62,35 @@ class AppRouter {
       routes: [
         GoRoute(path: login, builder: (context, state) => const LoginPage()),
         ShellRoute(
-          builder: (context, state, child) {
-            final adminDataSource = AdminRemoteDatasource();
-            final ordenDataSource = OrdenesRemoteDatasource();
-            final adminRepository = AdminRepositoryImpl(
-              adminDataSource,
-              ordenDataSource,
-            );
-
-            return MultiProvider(
-              providers: [
-                ChangeNotifierProvider(
-                  create: (_) => PersonaController(
-                    createPersonaUsecase: CreatePersonaUsecase(adminRepository),
-                    getPersonalUsecase: GetPersonalUsecase(adminRepository),
-                  ),
-                ),
-                ChangeNotifierProvider(
-                  create: (_) =>
-                      OrdenesController(CreateOrdenUsecase(adminRepository)),
-                ),
-              ],
-              child: MainShell(child: child),
-            );
-          },
+          builder: (context, state, child) => MainShell(child: child),
           routes: [
             GoRoute(
               path: adminHome,
               builder: (context, state) => PersonaPage(),
             ),
             GoRoute(
-              path: editPersonal,
-              builder: (context, state) => CreatePersonalPages(),
-            ),
-            GoRoute(
-              path: createOrden,
-              builder: (context, state) => AgregarOrdenPage(),
+              path: listaOrdenes,
+              builder: (context, state) => ListaOrdenesPage(),
             ),
           ],
         ),
+        GoRoute(
+          path: crearPersonal,
+          builder: (context, state) => CreatePersonalPages(),
+        ),
+        GoRoute(
+          path: editPersonal,
+          builder: (context, state) {
+            final personaModel = state.extra as PersonaModel;
+            return EditarPerfilPage(personaModel: personaModel);
+          },
+        ),
+        GoRoute(
+          path: createOrden,
+          builder: (context, state) => AgregarOrdenPage(),
+        ),
 
-        // 🚀 2. ESTA RUTA AHORA MUESTRA LA LISTA DE ÓRDENES
+        // 🚀 ESTA RUTA AHORA MUESTRA LA LISTA DE ÓRDENES (WorkerOrdersPage)
         GoRoute(
           path: workHome,
           builder: (context, state) {
@@ -120,12 +100,11 @@ class AppRouter {
               mediaUploadApi: MediaUploadApi(),
             );
 
-            // Cargamos la nueva pantalla pasándole el repositorio
             return WorkerOrdersPage(repository: repository);
           },
         ),
 
-        // 🚀 3. NUEVA RUTA: EL DASHBOARD CON EL MULTIPROVIDER
+        // 🚀 NUEVA RUTA: EL DASHBOARD DE LA ORDEN SELECCIONADA
         GoRoute(
           path: workDashboard,
           builder: (context, state) {
@@ -141,10 +120,9 @@ class AppRouter {
             return MultiProvider(
               providers: [
                 ChangeNotifierProvider(
-                  create: (_) => MasterOrderController(repository: repository)
-                    ..loadOrderById(
-                      orderId,
-                    ), // Carga por ID en lugar de por correo
+                  create: (_) => MasterOrderController(
+                    repository: repository,
+                  )..loadOrderById(orderId), // Carga la orden específica por ID
                 ),
                 ChangeNotifierProvider(
                   create: (_) => EnRouteController(

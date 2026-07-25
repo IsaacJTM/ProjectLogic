@@ -42,4 +42,10 @@ class AdminRepositoryImpl implements AdminRepository{
 
     return ordenDatasource.guardarOrdenConChekList(model); 
   }
+  
+  @override
+  Future<void> updatePerson(PersonaModel person) async {
+    // TODO: implement updatePerson
+    return await remoteDatasource.updatePerson(person);
+  }
 }

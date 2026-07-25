@@ -7,7 +7,7 @@ class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.child});
 
   int _indexFromLocation(String location){
-    if(location.contains(AppRouter.createOrden)) return 1;
+    if(location.contains(AppRouter.listaOrdenes)) return 1;
     return 0;
   }
 
@@ -45,7 +45,7 @@ class MainShell extends StatelessWidget {
                   icon: Icons.my_library_books,
                   label: 'Orders',
                   isSelected: currenIndex == 1,
-                  onTap: () => context.go(AppRouter.createOrden),
+                  onTap: () => context.go(AppRouter.listaOrdenes),
                 )
 
               ],

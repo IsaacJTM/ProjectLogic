@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logistics_pro/features/admin/data/models/persona_model.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/create_persona_usecase.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecase.dart';
+import 'package:logistics_pro/features/admin/domain/usecases/update_persona_usecase.dart';
 
 enum PersonState {initial, loading, success, error}
 
@@ -10,10 +11,12 @@ class PersonaController extends ChangeNotifier{
   // Hacer la referencia al domain a los usecases 
   final CreatePersonaUsecase createPersonaUsecase;
   final GetPersonalUsecase getPersonalUsecase;
+  final UpdatePersonaUsecase updatePersonaUsecase;
 
   PersonaController({
   required this.createPersonaUsecase, 
-  required this.getPersonalUsecase
+  required this.getPersonalUsecase,
+  required this.updatePersonaUsecase,
   });
 
 
@@ -49,7 +52,7 @@ class PersonaController extends ChangeNotifier{
     try{
       await createPersonaUsecase(persona);
       _personState = PersonState.success;
-      await fetchPersonal(); //Referencia al mpetodo anterior después de guardar
+      await fetchPersonal(); //Refrescar la lista global
       return true;
     }catch(e){
       _personState = PersonState.error;
@@ -58,12 +61,28 @@ class PersonaController extends ChangeNotifier{
       return false;
     }
   }
+
+  Future<void> updatePerson(PersonaModel person) async{
+    _personState = PersonState.loading;
+    notifyListeners();
+    try{
+      await updatePersonaUsecase(person);
+      _personState = PersonState.success;
+      await fetchPersonal(); //Refrescar la lista global
+    }catch(e){
+      _personState = PersonState.error;
+      _errorMessage = e.toString().replaceAll('Exception:', '');
+    }
+    notifyListeners();
+  }
+    
+  void resetState(){
+    _personState = PersonState.initial;
+  }
   
   void consumeError(){
     _errorMessage = null;
   }
 
-  void resetState(){
-    _personState = PersonState.initial;
-  }
+
 }
