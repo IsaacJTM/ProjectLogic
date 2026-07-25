@@ -64,4 +64,20 @@ class AdminRemoteDatasource {
         return PersonaModel.fromMap(data, doc.id);
       }).toList();
     }
+
+    Future<void> updatePerson(PersonaModel persona) async{
+      try{
+        await _firestore
+          .collection('usuarios')
+          .doc(persona.email)
+          .update({
+            'nombreApellido': persona.nombreApellido,
+            'carrera': persona.carrera,
+            'experienciaAnios': persona.experienciaAnios,
+            'cargo': persona.cargo,
+          });
+      }catch(e){
+        throw Exception('Error al actulziar los datos en firestore: $e');
+      }
+    }
 }

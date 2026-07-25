@@ -5,4 +5,5 @@ abstract class AdminRepository {
   Future<void> crearPersonal(PersonaModel persona);
   Future<List<PersonaModel>> obtenerPersonal();
   Future<void> crearOrden(OrdenTrabajoEntity orden);
+  Future<void> updatePerson(PersonaModel person);
 }
