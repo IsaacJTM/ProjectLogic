@@ -49,9 +49,23 @@ class MasterOrderController extends ChangeNotifier {
     }
   }
 
-  // 🚀 1. Agregamos lat y lng a los parámetros
+  Future<void> loadOrderById(String orderId) async {
+    _status = MasterOrderStatus.loading;
+    notifyListeners();
+    try {
+      final orderData = await repository.getOrderById(orderId);
+      _order = orderData;
+      _status = MasterOrderStatus.loaded;
+      notifyListeners();
+    } catch (e) {
+      _status = MasterOrderStatus.error;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+    }
+  }
+
   Future<void> advancePhase({String? note, double? lat, double? lng}) async {
-    print('2️⃣ CONTROLADOR RECIBE: Lat: $lat y Lng: $lng');
+    print('CONTROLADOR RECIBE: Lat: $lat y Lng: $lng');
     if (!isLoaded) return;
     final current = _order!;
 
@@ -62,7 +76,6 @@ class MasterOrderController extends ChangeNotifier {
         currentOrder: current,
         revert: false,
         note: note,
-        // 🚀 2. Se las enviamos a tu Caso de Uso
         lat: lat,
         lng: lng,
       );

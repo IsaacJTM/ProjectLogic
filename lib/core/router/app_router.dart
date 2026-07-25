@@ -29,10 +29,17 @@ import 'package:logistics_pro/features/logistics/data/datasources/route_gps_api.
 import 'package:logistics_pro/features/logistics/data/repositories/logistics_repository_impl.dart';
 import 'package:logistics_pro/features/logistics/presentation/pages/logistics_dashboard_page.dart';
 
+// 🚀 IMPORTANTE: Agregamos la importación de tu nueva pantalla de lista
+import 'package:logistics_pro/features/logistics/presentation/pages/worker_orders_page.dart';
+
 class AppRouter {
   static const String login = '/login';
   static const String adminHome = '/admin-home';
   static const String workHome = '/worker-home';
+
+  // 🚀 1. NUEVA RUTA PARA EL DASHBOARD DE LA ORDEN
+  static const String workDashboard = '/worker-dashboard/:orderId';
+
   static const String editPersonal = '/edit-person';
   static const String createOrden = '/create-orden';
 
@@ -61,29 +68,28 @@ class AppRouter {
         return null;
       },
       routes: [
-        GoRoute(
-          path: login, 
-          builder: (context, state) => const LoginPage()
-        ),
+        GoRoute(path: login, builder: (context, state) => const LoginPage()),
         ShellRoute(
-          builder: (context, state, child){
+          builder: (context, state, child) {
             final adminDataSource = AdminRemoteDatasource();
             final ordenDataSource = OrdenesRemoteDatasource();
-            final adminRepository = AdminRepositoryImpl(adminDataSource,ordenDataSource );
+            final adminRepository = AdminRepositoryImpl(
+              adminDataSource,
+              ordenDataSource,
+            );
 
             return MultiProvider(
               providers: [
                 ChangeNotifierProvider(
                   create: (_) => PersonaController(
                     createPersonaUsecase: CreatePersonaUsecase(adminRepository),
-                    getPersonalUsecase: GetPersonalUsecase(adminRepository)
+                    getPersonalUsecase: GetPersonalUsecase(adminRepository),
                   ),
                 ),
                 ChangeNotifierProvider(
-                  create: (_) => OrdenesController(
-                    CreateOrdenUsecase(adminRepository)
-                  ),
-                )
+                  create: (_) =>
+                      OrdenesController(CreateOrdenUsecase(adminRepository)),
+                ),
               ],
               child: MainShell(child: child),
             );
@@ -99,15 +105,33 @@ class AppRouter {
             ),
             GoRoute(
               path: createOrden,
-              builder: (context, state) => AgregarOrdenPage()
-            )
-          ]
+              builder: (context, state) => AgregarOrdenPage(),
+            ),
+          ],
         ),
+
+        // 🚀 2. ESTA RUTA AHORA MUESTRA LA LISTA DE ÓRDENES
         GoRoute(
           path: workHome,
           builder: (context, state) {
-            //const orderId = '234433';
-            final userEmail = authController.user?.email ?? '';
+            final repository = LogisticsRepositoryImpl(
+              orderRemoteApi: OrderRemoteApi(),
+              routeGpsApi: RouteGpsApi(),
+              mediaUploadApi: MediaUploadApi(),
+            );
+
+            // Cargamos la nueva pantalla pasándole el repositorio
+            return WorkerOrdersPage(repository: repository);
+          },
+        ),
+
+        // 🚀 3. NUEVA RUTA: EL DASHBOARD CON EL MULTIPROVIDER
+        GoRoute(
+          path: workDashboard,
+          builder: (context, state) {
+            // Extraemos el ID de la orden de la URL
+            final orderId = state.pathParameters['orderId'] ?? '';
+
             final repository = LogisticsRepositoryImpl(
               orderRemoteApi: OrderRemoteApi(),
               routeGpsApi: RouteGpsApi(),
@@ -117,9 +141,10 @@ class AppRouter {
             return MultiProvider(
               providers: [
                 ChangeNotifierProvider(
-                  create: (_) =>
-                      MasterOrderController(repository: repository)
-                        ..loadOrder(userEmail),
+                  create: (_) => MasterOrderController(repository: repository)
+                    ..loadOrderById(
+                      orderId,
+                    ), // Carga por ID en lugar de por correo
                 ),
                 ChangeNotifierProvider(
                   create: (_) => EnRouteController(
@@ -135,7 +160,6 @@ class AppRouter {
                   ),
                 ),
               ],
-              //child: const LogisticsDashboardPage(orderId: orderId),
               child: const LogisticsDashboardPage(),
             );
           },
