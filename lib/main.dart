@@ -6,6 +6,7 @@ import 'package:logistics_pro/features/admin/data/datasources/ordenes_remote_dat
 import 'package:logistics_pro/features/admin/data/repositories/admin_repository_impl.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/create_orden_usecase.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/create_persona_usecase.dart';
+import 'package:logistics_pro/features/admin/domain/usecases/get_ordenes_usecase.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/get_personal_usecase.dart';
 import 'package:logistics_pro/features/admin/domain/usecases/update_persona_usecase.dart';
 import 'package:logistics_pro/features/admin/presentation/controllers/ordenes_controller.dart';
@@ -61,7 +62,8 @@ class _LogisticsProAppState extends State<LogisticsProApp> {
     );
 
     _ordenesController = OrdenesController(
-      CreateOrdenUsecase(adminRepository),
+       CreateOrdenUsecase(adminRepository),
+       GetOrdenesUsecase(adminRepository)
     );
 
 
