@@ -70,5 +70,10 @@
     <string>Necesitamos tu ubicación para trazar la ruta hacia el sitio de trabajo.</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Necesitamos tu ubicación para mantener el seguimiento mientras conduces.</string>
+
+	<key>NSCameraUsageDescription</key>
+    <string>Necesitamos acceso a la cámara para capturar fotos como evidencia del servicio.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Necesitamos acceso a la galería para seleccionar evidencias guardadas.</string>
 </dict>
 </plist>

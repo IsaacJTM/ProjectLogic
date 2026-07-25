@@ -45,6 +45,9 @@ dependencies:
   geolocator: ^13.0.0 # Asegúrate de respetar la sangría (espacios)
   flutter_map: ^6.1.0 
   latlong2: ^0.9.0
+  image_picker: ^1.2.3
+  #firebase_storage: ^13.4.5
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart'; // Asegúrate de tener el paquete geolocator en tu pubspec.yaml
+import 'package:geolocator/geolocator.dart';
 
 import '../../../domain/entities/coordinate_entity.dart';
 import '../../../domain/usecases/track_technician_route_usecase.dart';
@@ -42,7 +42,7 @@ class EnRouteController extends ChangeNotifier {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      // 🚨 3. EL TRABAJADOR BLOQUEÓ LOS PERMISOS PERMANENTEMENTE
+      //3EL TRABAJADOR BLOQUEÓ LOS PERMISOS PERMANENTEMENTE
       // Si le dio a "No volver a preguntar", la única forma es abrir los ajustes del celular
       await Geolocator.openAppSettings();
       return Future.error('Permisos bloqueados. Ve a ajustes.');
@@ -50,7 +50,7 @@ class EnRouteController extends ChangeNotifier {
   }
 
   Future<void> startTracking(String orderId, BuildContext context) async {
-    // 1. 🛡️ PROTECCIÓN: Si ya estamos rastreando y tenemos ubicación, no reinicies nada
+    // 1. PROTECCIÓN: Si ya estamos rastreando y tenemos ubicación, no reinicies nada
     if (_status == EnRouteStatus.tracking && _lastPosition != null) {
       return;
     }
@@ -59,10 +59,9 @@ class EnRouteController extends ChangeNotifier {
       await _solicitarPermisoGPS(context);
 
       _status = EnRouteStatus.tracking;
-      // Ya no ponemos _lastPosition en null aquí
       notifyListeners();
 
-      // 2. 🚀 CARGA INSTANTÁNEA: Pedimos la ubicación actual de inmediato
+      // 2. CARGA INSTANTÁNEA: Pedimos la ubicación actual de inmediato
       // (Comenta este bloque si estás usando el Stream de prueba del emulador)
       Position initialPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -74,7 +73,7 @@ class EnRouteController extends ChangeNotifier {
       );
       notifyListeners(); // ¡El mapa se dibuja al instante!
 
-      // 3. 📡 RASTREO CONTINUO: Ahora sí encendemos el Stream para cuando camine
+      // 3. RASTREO CONTINUO: Ahora sí encendemos el Stream para cuando camine
       _subscription?.cancel();
       _subscription =
           Geolocator.getPositionStream(
@@ -83,7 +82,7 @@ class EnRouteController extends ChangeNotifier {
                   distanceFilter: 2,
                 ),
               )
-              // 🛠️ AQUÍ ESTÁ LA MAGIA: Convertimos Position a CoordinateEntity antes de escuchar
+              // Convertimos Position a CoordinateEntity antes de escuchar
               .map(
                 (Position position) => CoordinateEntity(
                   latitude: position.latitude,
@@ -95,12 +94,29 @@ class EnRouteController extends ChangeNotifier {
                 _lastPosition = coord;
                 notifyListeners();
               });
-
-      // 🚨 Nota: Si sigues en el Emulador, comenta el bloque 2 y 3,
-      // y usa tu Stream.periodic aquí como lo teníamos antes.
     } catch (e) {
+      // 🛡️ 1. DESTRUIMOS LA COORDENADA ANTERIOR SI HAY ERROR
+      // Esto forzará al botón de la vista a ponerse gris (null)
+      _status = EnRouteStatus.idle;
+      _lastPosition = null;
+      notifyListeners();
+
       if (kDebugMode) {
         print("Error en startTracking: $e");
+      }
+
+      // 2. Mostramos la alerta roja
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '⚠️ No podemos iniciar la ruta si el GPS está apagado o sin permisos.',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
       }
     }
   }

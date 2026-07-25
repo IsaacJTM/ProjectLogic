@@ -42,8 +42,9 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
       final orders = await orderRemoteApi.fetchActiveOrders(userId);
       return orders.firstWhere(
         (o) => o.id == orderId,
-        orElse: () =>
-            throw Exception('No se encontró la orden con ID: $orderId'),
+        orElse: () => throw Exception(
+          'No se encontró la orden con ID/nroOrden: $orderId',
+        ),
       );
     } catch (e) {
       throw Exception('Error al obtener la orden por ID: $e');
@@ -55,11 +56,15 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     required String orderId,
     required OrderPhase targetPhase,
     String? note,
+    double? lat,
+    double? lng,
   }) async {
     return await orderRemoteApi.changePhase(
       orderId: orderId,
       targetPhase: targetPhase,
       note: note,
+      lat: lat,
+      lng: lng,
     );
   }
 
@@ -89,7 +94,13 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     String orderId,
     List<ChecklistTaskEntity> tasks,
   ) async {
-    // Aquí
+    try {
+      for (final task in tasks) {
+        await orderRemoteApi.updateTaskStatus(task.id, task.done);
+      }
+    } catch (e) {
+      throw Exception('Error al enviar el checklist: $e');
+    }
   }
 
   @override
@@ -102,8 +113,33 @@ class LogisticsRepositoryImpl implements LogisticsRepository {
     String orderId,
     String phaseTag,
     List<int> bytes,
-  ) {
-    return mediaUploadApi.upload(orderId: orderId, tag: phaseTag, bytes: bytes);
+  ) async {
+    try {
+      String idOrdenInterno = orderId;
+      final targetNum = int.tryParse(orderId);
+      if (targetNum != null && targetNum > 100) {
+        final query = await FirebaseFirestore.instance
+            .collection('ordenes_trabajo')
+            .where('nroOrden', isEqualTo: targetNum)
+            .get();
+
+        if (query.docs.isNotEmpty) {
+          final data = query.docs.first.data();
+          idOrdenInterno = (data['idOrden'] ?? query.docs.first.id).toString();
+        }
+      }
+
+      // 1. Subir los bytes a Cloudinary usando el ID correcto
+      final String downloadUrl = await mediaUploadApi.upload(
+        orderId: idOrdenInterno,
+        tag: phaseTag,
+        bytes: bytes,
+      );
+
+      return downloadUrl;
+    } catch (e) {
+      throw Exception('Error al subir evidencia en el repositorio: $e');
+    }
   }
 
   @override

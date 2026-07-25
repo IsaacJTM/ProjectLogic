@@ -12,6 +12,8 @@ abstract class LogisticsRepository {
     required String orderId,
     required OrderPhase targetPhase,
     String? note,
+    double? lat,
+    double? lng,
   });
 
   Future<List<ChecklistTaskEntity>> getChecklistTasks(String orderId);

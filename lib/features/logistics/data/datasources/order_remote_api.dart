@@ -70,6 +70,8 @@ class OrderRemoteApi {
     required String orderId,
     required OrderPhase targetPhase,
     String? note,
+    double? lat,
+    double? lng,
   }) async {
     try {
       int faseNum;
@@ -109,8 +111,16 @@ class OrderRemoteApi {
         if (note != null) 'notasGenerales': note,
         if (targetPhase == OrderPhase.execution)
           'fechaInicioEjecucion': FieldValue.serverTimestamp(),
-      };
 
+        if (lat != null) 'latitud': lat.toString(),
+        if (lng != null) 'longitud': lng.toString(),
+      };
+      print('====== REPORTE DE FIREBASE ======');
+      print('Documento ID: ${docRef.id}');
+      print('Latitud que llegó: $lat');
+      print('Longitud que llegó: $lng');
+      print('Paquete completo a enviar: $updates');
+      print('=================================');
       await docRef.update(updates);
 
       final updatedDoc = await docRef.get();

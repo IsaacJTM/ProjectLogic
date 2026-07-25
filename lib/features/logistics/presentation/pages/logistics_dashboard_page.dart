@@ -64,16 +64,17 @@ class _DashboardBodyState extends State<_DashboardBody> {
     super.dispose();
   }
 
-  Widget _buildPhaseContent(OrderPhase phase, String currentOrderId) {
+  Widget _buildPhaseContent(OrderPhase phase, String dbOrderId) {
+    // 👈 Renombrado para mayor claridad
     switch (phase) {
       case OrderPhase.assigned:
         return const AssignedPhaseView();
       case OrderPhase.enRoute:
-        return EnRoutePhaseView(orderId: currentOrderId);
+        return EnRoutePhaseView(orderId: dbOrderId);
       case OrderPhase.onSite:
-        return const OnSitePhaseView();
+        return OnSitePhaseView(orderId: dbOrderId); // Ahora sí recibirá "2"
       case OrderPhase.execution:
-        return ExecutionPhaseView(orderId: currentOrderId);
+        return ExecutionPhaseView(orderId: dbOrderId);
       case OrderPhase.completed:
         return const CompletedPhaseView();
     }
@@ -131,10 +132,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF8FAFC,
-      ), // Fondo claro y pulcro para el Scaffold
-      // 🛠️ BARRA SUPERIOR INSTITUCIONAL (Estilo idéntico a Screenshot_4.png)
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -145,7 +143,6 @@ class _DashboardBodyState extends State<_DashboardBody> {
           child: Container(color: Colors.grey.withOpacity(0.15), height: 1.0),
         ),
 
-        // Icono de camión azul a la izquierda
         leading: const Padding(
           padding: EdgeInsets.only(left: 16.0),
           child: Icon(
@@ -167,7 +164,6 @@ class _DashboardBodyState extends State<_DashboardBody> {
           ),
         ),
 
-        // Botón de Salir (Cerrar Sesión) en el extremo derecho
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
@@ -306,7 +302,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
                           ),
                           const SizedBox(height: 24),
 
-                          _buildPhaseContent(order.phase, actualOrderId),
+                          _buildPhaseContent(order.phase, order.id.toString()),
 
                           const SizedBox(height: 100),
                         ],
@@ -417,25 +413,26 @@ class _DashboardBodyState extends State<_DashboardBody> {
                   ),
                   const SizedBox(width: 12),
                 ],
-                Expanded(
-                  child: SizedBox(
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: masterState.isSyncing || isLast
-                          ? null
-                          : () => context
-                                .read<MasterOrderController>()
-                                .advancePhase(),
-                      child: Text(
-                        isLast ? 'ORDEN FINALIZADA' : 'SIGUIENTE FASE',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
+                if (order.phase != OrderPhase.enRoute)
+                  Expanded(
+                    child: SizedBox(
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: masterState.isSyncing || isLast
+                            ? null
+                            : () => context
+                                  .read<MasterOrderController>()
+                                  .advancePhase(),
+                        child: Text(
+                          isLast ? 'ORDEN FINALIZADA' : 'SIGUIENTE FASE',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           );

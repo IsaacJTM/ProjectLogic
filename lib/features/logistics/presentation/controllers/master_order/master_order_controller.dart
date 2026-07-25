@@ -49,7 +49,9 @@ class MasterOrderController extends ChangeNotifier {
     }
   }
 
-  Future<void> advancePhase({String? note}) async {
+  // 🚀 1. Agregamos lat y lng a los parámetros
+  Future<void> advancePhase({String? note, double? lat, double? lng}) async {
+    print('2️⃣ CONTROLADOR RECIBE: Lat: $lat y Lng: $lng');
     if (!isLoaded) return;
     final current = _order!;
 
@@ -60,6 +62,9 @@ class MasterOrderController extends ChangeNotifier {
         currentOrder: current,
         revert: false,
         note: note,
+        // 🚀 2. Se las enviamos a tu Caso de Uso
+        lat: lat,
+        lng: lng,
       );
       _order = updated;
       _status = MasterOrderStatus.loaded;

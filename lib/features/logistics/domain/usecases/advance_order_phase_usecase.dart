@@ -9,8 +9,10 @@ class AdvanceOrderPhaseUseCase {
 
   Future<OrderEntity> call({
     required OrderEntity currentOrder,
-    required bool revert,
+    bool revert = false,
     String? note,
+    double? lat,
+    double? lng,
   }) async {
     final target = revert
         ? currentOrder.phase.previous
@@ -28,6 +30,8 @@ class AdvanceOrderPhaseUseCase {
       orderId: currentOrder.id,
       targetPhase: target,
       note: note,
+      lat: lat,
+      lng: lng,
     );
   }
 }
