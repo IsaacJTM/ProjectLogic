@@ -22,7 +22,7 @@ class OrdenTrabajoEntity {
     required this.idCliente,
     required this.idUsuario,
     required this.nroOrden,
-    this.estadoFase = 1,
+    this.estadoFase = 0,
     required this.fechaCreacion,
     required this.fechaAsignacionOrden,
     this.fechafinalizacionOrden,

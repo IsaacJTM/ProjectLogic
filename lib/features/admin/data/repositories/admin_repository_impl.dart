@@ -48,4 +48,9 @@ class AdminRepositoryImpl implements AdminRepository{
     // TODO: implement updatePerson
     return await remoteDatasource.updatePerson(person);
   }
+  
+  @override
+  Stream<List<OrdenTrabajoEntity>> getOrdenTrabajo() {
+    return  ordenDatasource.getOrdenTrabajo();
+  }
 }

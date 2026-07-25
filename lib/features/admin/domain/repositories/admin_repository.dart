@@ -6,4 +6,5 @@ abstract class AdminRepository {
   Future<List<PersonaModel>> obtenerPersonal();
   Future<void> crearOrden(OrdenTrabajoEntity orden);
   Future<void> updatePerson(PersonaModel person);
+  Stream<List<OrdenTrabajoEntity>> getOrdenTrabajo();
 }
