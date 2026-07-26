@@ -28,8 +28,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
     // Al abrir la pantalla, buscamos si ya hay una foto guardada
     _loadExistingPhoto();
   }
-
-  /// 🔍 Busca en Firestore si esta orden ya tiene una foto cargada
   Future<void> _loadExistingPhoto() async {
     try {
       final numOrden = int.tryParse(widget.orderId) ?? 0;
@@ -56,7 +54,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
     }
   }
 
-  /// 📸 Captura una nueva foto y la sube a Cloudinary y Firestore
   Future<void> _captureArrivalPhoto() async {
     try {
       // 1. Abrimos la cámara
@@ -151,7 +148,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 📸 SECCIÓN DE VISTA PREVIA
           if (_uploadedImageUrl != null && !isUploading) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -210,8 +206,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
           ],
 
           const SizedBox(height: 16),
-
-          // 🔘 SECCIÓN DE BOTONES
           if (_uploadedImageUrl != null) ...[
             // Botón para Retomar Foto (si ya existe una)
             OutlinedButton.icon(
