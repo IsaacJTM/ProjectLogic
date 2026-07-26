@@ -15,7 +15,8 @@ class EditarPerfilPage extends StatefulWidget {
   State<EditarPerfilPage> createState() => _EditarPerfilPageState();
 }
 
-class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerProviderStateMixin {
+class _EditarPerfilPageState extends State<EditarPerfilPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
 
@@ -24,17 +25,30 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
   late TextEditingController _experienciaController;
   String? _cargoSeleccionado;
   PersonaController? _personaController;
-  final List<String> _cargos = ['Administrador', 'Técnico', 'Supervisor', 'Operador'];
+  final List<String> _cargos = [
+    'Administrador',
+    'Técnico',
+    'Supervisor',
+    'Operador',
+  ];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _nombreApellidoController = TextEditingController(text: widget.personaModel.nombreApellido);
-    _carreraController = TextEditingController(text: widget.personaModel.carrera);
-    _experienciaController = TextEditingController(text: widget.personaModel.experienciaAnios.toString());
-    _cargoSeleccionado = _cargos.contains(widget.personaModel.cargo) ? widget.personaModel.cargo : _cargos.first;
+    _nombreApellidoController = TextEditingController(
+      text: widget.personaModel.nombreApellido,
+    );
+    _carreraController = TextEditingController(
+      text: widget.personaModel.carrera,
+    );
+    _experienciaController = TextEditingController(
+      text: widget.personaModel.experienciaAnios.toString(),
+    );
+    _cargoSeleccionado = _cargos.contains(widget.personaModel.cargo)
+        ? widget.personaModel.cargo
+        : _cargos.first;
   }
 
   @override
@@ -42,27 +56,27 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     final controller = context.read<PersonaController>();
-    if(_personaController != controller){
+    if (_personaController != controller) {
       _personaController?.removeListener(_onPersonaChanged);
       _personaController = controller;
       _personaController!.addListener(_onPersonaChanged);
     }
   }
 
-  void _onPersonaChanged(){
+  void _onPersonaChanged() {
     final state = _personaController!;
-    if(state.status == PersonState.error && state.errorMessage != null){
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.errorMessage!)),
-      );
+    if (state.status == PersonState.error && state.errorMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
     }
 
-    if(state.status == PersonState.success){
+    if (state.status == PersonState.success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Perfil actualizado con éxito!'),
           backgroundColor: Colors.green,
-        )
+        ),
       );
       state.resetState();
       //context.pop();
@@ -70,7 +84,7 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _personaController?.removeListener(_onPersonaChanged);
     _tabController.dispose();
     _nombreApellidoController.dispose();
@@ -80,25 +94,27 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
   }
 
   //Método para actualizar, envio al controller
-  void _guardarCambios(){
-    if(!_formKey.currentState!.validate() || _cargoSeleccionado == null) return;
+  void _guardarCambios() {
+    if (!_formKey.currentState!.validate() || _cargoSeleccionado == null)
+      return;
     final personaActualizada = PersonaModel(
       email: widget.personaModel.email,
-      nombreApellido: _nombreApellidoController.text.trim(), 
-      carrera: _carreraController.text.trim(), 
-      experienciaAnios: int.tryParse(_experienciaController.text) ?? 0, 
-      cargo: _cargoSeleccionado!, 
+      nombreApellido: _nombreApellidoController.text.trim(),
+      carrera: _carreraController.text.trim(),
+      experienciaAnios: int.tryParse(_experienciaController.text) ?? 0,
+      cargo: _cargoSeleccionado!,
       usuario: widget.personaModel.usuario,
-      imageUrl: widget.personaModel.imageUrl
+      imageUrl: widget.personaModel.imageUrl,
     );
     context.read<PersonaController>().updatePerson(personaActualizada);
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool tieneFoto = widget.personaModel.imageUrl != null &&
-      widget.personaModel.imageUrl!.isNotEmpty &&
-      widget.personaModel.imageUrl!.startsWith('http');
+    final bool tieneFoto =
+        widget.personaModel.imageUrl != null &&
+        widget.personaModel.imageUrl!.isNotEmpty &&
+        widget.personaModel.imageUrl!.startsWith('http');
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -109,7 +125,13 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
           icon: const Icon(Icons.arrow_back, color: Color(0xFF2563EB)),
           onPressed: () => context.pop(),
         ),
-        title: const Text("Logistics Pro", style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Logistics Pro",
+          style: TextStyle(
+            color: Color(0xFF2563EB),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0, top: 8, bottom: 8),
@@ -120,19 +142,30 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
                   onPressed: isLoading ? null : _guardarCambios,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D4ED8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: isLoading
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Text('Guardar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      : const Text(
+                          'Guardar',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 );
               },
             ),
-          )
+          ),
         ],
       ),
       body: Column(
@@ -145,27 +178,43 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
                 CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[200],
-                  backgroundImage: tieneFoto ? NetworkImage(widget.personaModel.imageUrl!) : null,
-                  child: !tieneFoto ? const Icon(Icons.person, size: 50, color: Colors.grey) : null,
+                  backgroundImage: tieneFoto
+                      ? NetworkImage(widget.personaModel.imageUrl!)
+                      : null,
+                  child: !tieneFoto
+                      ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                      : null,
                 ),
                 Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(color: Color(0xFF2563EB), shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2563EB),
+                    shape: BoxShape.circle,
+                  ),
                   child: const Icon(Icons.edit, size: 16, color: Colors.white),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          Text(widget.personaModel.nombreApellido, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Text('ID: ${widget.personaModel.usuario} • ${widget.personaModel.cargo}', style: const TextStyle(color: Colors.grey)),
+          Text(
+            widget.personaModel.nombreApellido,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            'ID: ${widget.personaModel.usuario} • ${widget.personaModel.cargo}',
+            style: const TextStyle(color: Colors.grey),
+          ),
           const SizedBox(height: 20),
           TabBar(
             controller: _tabController,
             labelColor: const Color(0xFF2563EB),
             unselectedLabelColor: Colors.grey,
             indicatorColor: const Color(0xFF2563EB),
-            tabs: const [Tab(text: 'Datos Personal'), Tab(text: 'Lista de Órdenes')],
+            tabs: const [
+              Tab(text: 'Datos Personal'),
+              Tab(text: 'Lista de Órdenes'),
+            ],
           ),
           Expanded(
             child: TabBarView(
@@ -180,6 +229,7 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
       ),
     );
   }
+
   Widget _buildFormularioDatosPersonal() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20.0),
@@ -215,8 +265,16 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
                   child: DropdownButton<String>(
                     value: _cargoSeleccionado,
                     isExpanded: true,
-                    onChanged: (val) => setState(() => _cargoSeleccionado = val),
-                    items: _cargos.map((cargo) => DropdownMenuItem(value: cargo, child: Text(cargo))).toList(),
+                    onChanged: (val) =>
+                        setState(() => _cargoSeleccionado = val),
+                    items: _cargos
+                        .map(
+                          (cargo) => DropdownMenuItem(
+                            value: cargo,
+                            child: Text(cargo),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
               ),
@@ -238,20 +296,31 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
           return const Center(child: CircularProgressIndicator());
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('Este personal no tiene órdenes asignadas.', style: TextStyle(color: Colors.grey)));
+          return const Center(
+            child: Text(
+              'Este personal no tiene órdenes asignadas.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
-            final data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+            final data =
+                snapshot.data!.docs[index].data() as Map<String, dynamic>;
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 leading: const Icon(Icons.assignment, color: Color(0xFF2563EB)),
-                title: Text(data['notasGenerales'] ?? 'Sin descripción', style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(
+                  data['notasGenerales'] ?? 'Sin descripción',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Text('Cliente ID: ${data['idCliente'] ?? 'N/A'}'),
                 trailing: const Icon(Icons.chevron_right),
               ),
@@ -265,11 +334,22 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
   Widget _buildInputLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF475569), fontSize: 13)),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF475569),
+          fontSize: 13,
+        ),
+      ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, {bool isNumber = false}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint, {
+    bool isNumber = false,
+  }) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -278,11 +358,15 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> with SingleTickerPr
       child: TextFormField(
         controller: controller,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        validator: (v) => v == null || v.trim().isEmpty ? 'Campo requerido' : null,
+        validator: (v) =>
+            v == null || v.trim().isEmpty ? 'Campo requerido' : null,
         decoration: InputDecoration(
           hintText: hint,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );

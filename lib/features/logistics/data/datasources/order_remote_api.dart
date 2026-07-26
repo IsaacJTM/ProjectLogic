@@ -8,19 +8,22 @@ class OrderRemoteApi {
 
   Future<List<OrderModel>> fetchActiveOrders(String technicianId) async {
     try {
+      // 🚀 Le quitamos la restricción de estadoFase para que traiga TODAS las órdenes del usuario
       final querySnapshot = await _firestore
           .collection('ordenes_trabajo')
           .where('idUsuario', isEqualTo: technicianId)
-          .where('estadoFase', isNotEqualTo: 4)
           .get();
 
       if (querySnapshot.docs.isEmpty) {
         return [];
       }
 
-      return querySnapshot.docs.map((doc) {
+      // Además, vamos a ordenarlas por fecha (las más nuevas primero) o número de orden
+      // Pero lo haremos a nivel de Dart para no complicar los índices de Firebase
+      final orders = querySnapshot.docs.map((doc) {
         final data = doc.data();
-        final int faseNum = data['estadoFase'] as int? ?? 0;
+        final int faseNum =
+            data['estadoFase'] as int? ?? 0; // Si no existe, asume 0
 
         OrderPhase currentPhase;
         switch (faseNum) {
@@ -61,6 +64,10 @@ class OrderRemoteApi {
           createdAt: tiempoReferencia,
         );
       }).toList();
+
+      orders.sort((a, b) => a.phase.index0.compareTo(b.phase.index0));
+
+      return orders;
     } catch (e) {
       throw Exception('Error al obtener las órdenes de Firestore: $e');
     }

@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:logistics_pro/features/admin/presentation/pages/persona_page.dart';
-import 'package:logistics_pro/features/admin/presentation/widgets/persona_card_widget.dart';
 import 'package:provider/provider.dart';
-
-import '../../data/datasources/auth_remote_api.dart';
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../domain/entities/user_role.dart';
-import '../../domain/usecases/login_usecase.dart';
 import '../controllers/auth_controller.dart';
-import '../../../logistics/presentation/pages/logistics_dashboard_page.dart';
 
 /// Login único que redirige por rol: técnico -> dashboard de logística,
 /// administrador -> panel de creación/asignación de órdenes.
@@ -32,6 +24,9 @@ class _LoginFormState extends State<_LoginForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   AuthController? _controller;
+
+  // 🚀 Nueva variable para controlar la visibilidad de la contraseña
+  bool _isPasswordVisible = false;
 
   @override
   void didChangeDependencies() {
@@ -98,18 +93,39 @@ class _LoginFormState extends State<_LoginForm> {
                       ),
                     ),
                     const SizedBox(height: 40),
+
+                    // 🚀 Campo de Email
                     _buildField(
-                      _emailController,
-                      'Correo electrónico',
-                      Icons.email_outlined,
+                      controller: _emailController,
+                      hint: 'Correo electrónico',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType
+                          .emailAddress, // Teclado optimizado para emails
                     ),
                     const SizedBox(height: 16),
+
+                    // 🚀 Campo de Contraseña con el botón del "Ojo"
                     _buildField(
-                      _passwordController,
-                      'Contraseña',
-                      Icons.lock_outline,
-                      obscure: true,
+                      controller: _passwordController,
+                      hint: 'Contraseña',
+                      icon: Icons.lock_outline,
+                      obscure: !_isPasswordVisible, // Depende del estado
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.white70,
+                        ),
+                        onPressed: () {
+                          // Actualizamos el estado para alternar la visibilidad
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
+
                     const SizedBox(height: 28),
                     SizedBox(
                       width: double.infinity,
@@ -161,20 +177,25 @@ class _LoginFormState extends State<_LoginForm> {
     );
   }
 
-  Widget _buildField(
-    TextEditingController controller,
-    String hint,
-    IconData icon, {
+  // 🚀 Se actualizaron los parámetros para recibir el suffixIcon y keyboardType
+  Widget _buildField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
     bool obscure = false,
+    Widget? suffixIcon,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscure,
+      keyboardType: keyboardType,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.white60),
         prefixIcon: Icon(icon, color: Colors.white70),
+        suffixIcon: suffixIcon, // 👈 Aquí inyectamos el botón del ojo
         filled: true,
         fillColor: Colors.white.withOpacity(0.15),
         contentPadding: const EdgeInsets.symmetric(

@@ -19,7 +19,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
   final ImagePicker _picker = ImagePicker();
   final MediaUploadApi _mediaApi = MediaUploadApi();
 
-  // Variable para guardar y mostrar la URL de la foto
   String? _uploadedImageUrl;
 
   @override
@@ -29,7 +28,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
     _loadExistingPhoto();
   }
 
-  /// 🔍 Busca en Firestore si esta orden ya tiene una foto cargada
   Future<void> _loadExistingPhoto() async {
     try {
       final numOrden = int.tryParse(widget.orderId) ?? 0;
@@ -56,7 +54,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
     }
   }
 
-  /// 📸 Captura una nueva foto y la sube a Cloudinary y Firestore
   Future<void> _captureArrivalPhoto() async {
     try {
       // 1. Abrimos la cámara
