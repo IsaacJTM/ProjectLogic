@@ -148,7 +148,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 📸 SECCIÓN DE VISTA PREVIA
           if (_uploadedImageUrl != null && !isUploading) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -207,8 +206,6 @@ class _OnSitePhaseViewState extends State<OnSitePhaseView> {
           ],
 
           const SizedBox(height: 16),
-
-          // 🔘 SECCIÓN DE BOTONES
           if (_uploadedImageUrl != null) ...[
             // Botón para Retomar Foto (si ya existe una)
             OutlinedButton.icon(
