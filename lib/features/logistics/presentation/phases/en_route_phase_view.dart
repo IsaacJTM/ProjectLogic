@@ -81,9 +81,8 @@ class _EnRoutePhaseViewState extends State<EnRoutePhaseView>
               ),
               const SizedBox(height: 16),
 
-              // 🗺️ ZONA DEL MAPA O BOTÓN DE INICIO
+              // ZONA DEL MAPA O BOTÓN DE INICIO
               if (isIdle)
-                // 1️⃣ BOTÓN PARA INICIAR RUTA MANUALMENTE (Evita el crasheo)
                 SizedBox(
                   height: 200,
                   width: double.infinity,

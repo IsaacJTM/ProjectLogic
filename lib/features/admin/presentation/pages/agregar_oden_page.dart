@@ -1,15 +1,13 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:logistics_pro/features/admin/domain/entities/tarea_checklist_entity.dart';
+import 'package:logistics_pro/features/admin/presentation/pages/mapa_seleccion_page.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart'; // Recomiendo agregar 'uuid' en pubspec para generar IDs únicos
 import '../controllers/ordenes_controller.dart';
 import '../../domain/entities/orden_trabajo_entity.dart';
-import '../../data/models/persona_model.dart';
 
 class AgregarOrdenPage extends StatefulWidget {
   const AgregarOrdenPage({super.key});
@@ -25,12 +23,12 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
   final _lugarNombreController = TextEditingController();
   final _fechaController = TextEditingController();
 
-  final String _latitud = '-12.046374';
-  final String _longitud = '-77.042793';
+  String _latitud = '-12.046374';
+  String _longitud = '-77.042793';
   DateTime? _fechaSeleccionada;
-  String? _clienteSeleccionadoId; // Guardará el idCliente exacto
+  String? _clienteSeleccionadoId;
   String? _usuarioSeleccionadId;
-  List<Map<String, String>> _actividadesLocales = []; // Listado temporal UI
+  List<Map<String, String>> _actividadesLocales = [];
   OrdenesController? _ordenesController;
 
   @override
@@ -47,11 +45,16 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
   void _onOrdenStateChanged() {
     final state = _ordenesController!;
     if (state.status == OrdenState.error && state.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
     }
     if (state.status == OrdenState.success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('¡Orden de Trabajo enviada con éxito!'), backgroundColor: Colors.green)
+        const SnackBar(
+          content: Text('¡Orden de Trabajo enviada con éxito!'),
+          backgroundColor: Colors.green,
+        ),
       );
       state.resetState();
     }
@@ -67,22 +70,41 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     super.dispose();
   }
 
-  void _mostrarPopUpMapa() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Falta integrar con Google Maps'),
-        content: Text('Coordenadas guardadas en Firebase:\nLat: $_latitud\nLng: $_longitud'),
-        actions: [TextButton(onPressed: () => context.pop(), child: const Text('Cerrar'))],
+  Future<void> _mostrarPopUpMapa() async {
+    // Abrimos la pantalla y esperamos un objeto LatLng de latlong2
+    final selectedLocation = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute(
+        builder: (context) => MapaSeleccionPantalla(
+          initialLat: double.tryParse(_latitud) ?? -12.046374,
+          initialLng: double.tryParse(_longitud) ?? -77.042793,
+        ),
       ),
     );
+
+    // Si el usuario seleccionó un punto y presionó el check
+    if (selectedLocation != null) {
+      setState(() {
+        _latitud = selectedLocation.latitude.toString();
+        _longitud = selectedLocation.longitude.toString();
+        _lugarNombreController.text = 'Ubicación seleccionada en mapa';
+      });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Coordenadas seleccionadas correctamente!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
   }
 
   void _mostrarDialogoNuevaActividad() {
     final actFormKey = GlobalKey<FormState>();
     final _descripcionController = TextEditingController();
     final _notaTareaController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -104,57 +126,70 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => context.pop(), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text('Cancelar'),
+          ),
           ElevatedButton(
             onPressed: () {
               if (actFormKey.currentState!.validate()) {
                 setState(() {
-                  _actividadesLocales.add(
-                    {
-                      'titulo': _descripcionController.text.trim(), 
-                      'subTitulo': _notaTareaController.text.trim()
-                    });
+                  _actividadesLocales.add({
+                    'titulo': _descripcionController.text.trim(),
+                    'subTitulo': _notaTareaController.text.trim(),
+                  });
                 });
                 context.pop();
               }
             },
             child: const Text('Añadir'),
-          )
+          ),
         ],
       ),
     );
   }
 
   void _guardarOrdenCompleta() {
-    if (!_formKey.currentState!.validate() || _clienteSeleccionadoId == null) return;
+    if (!_formKey.currentState!.validate() || _clienteSeleccionadoId == null)
+      return;
     if (_actividadesLocales.isEmpty) return;
 
-    final int generatedIdOrden = 101 + (DateTime.now().millisecond); // Generador simple ID único
+    final int generatedIdOrden =
+        101 + (DateTime.now().millisecond); // Generador simple ID único
     final int geratedITarea = 10 + DateTime.now().second;
 
     // Mapeamos las actividades temporales a la Entidad limpia
-    final listaEntidadesActividades = _actividadesLocales.map((tarea) => TareaChecklistEntity(
-      idTarea: geratedITarea,
-      idOrden: generatedIdOrden,
-      descripcion: tarea['titulo']!,
-      notaTarea: tarea['subTitulo']!,
-    )).toList();
+    final listaEntidadesActividades = _actividadesLocales
+        .map(
+          (tarea) => TareaChecklistEntity(
+            idTarea: geratedITarea,
+            idOrden: generatedIdOrden,
+            descripcion: tarea['titulo']!,
+            notaTarea: tarea['subTitulo']!,
+          ),
+        )
+        .toList();
 
     // Creamos la Orden de Trabajo como Entidad lista para enviar
     final nuevaOrdenTrabajo = OrdenTrabajoEntity(
       idOrden: generatedIdOrden,
-      idCliente: int.parse(_clienteSeleccionadoId!) ,
+      idCliente: int.parse(_clienteSeleccionadoId!),
       idUsuario: _usuarioSeleccionadId!,
-      nroOrden: 1001 + (DateTime.now().millisecond), // Número autogenerado para el ejemplo
+      nroOrden:
+          1001 +
+          (DateTime.now().millisecond), // Número autogenerado para el ejemplo
       estadoFase: 0, // Estado Base de tu captura
       fechaCreacion: DateTime.now(),
       fechaAsignacionOrden: _fechaSeleccionada ?? DateTime.now(),
-      notasGenerales: _tituloController.text.trim() + " - " + _descripcionController.text.trim(),
+      notasGenerales:
+          _tituloController.text.trim() +
+          " - " +
+          _descripcionController.text.trim(),
       tiempoEjecucion: 0,
       nombreLugar: _lugarNombreController.text.trim(),
       latitud: _latitud,
       longitud: _longitud,
-      actividades: listaEntidadesActividades, 
+      actividades: listaEntidadesActividades,
     );
 
     context.read<OrdenesController>().createOrden(nuevaOrdenTrabajo);
@@ -164,7 +199,15 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text("Agregar Orden", style: TextStyle(color: Color(0xFF1E40AF), fontWeight: FontWeight.bold))),
+      appBar: AppBar(
+        title: const Text(
+          "Agregar Orden",
+          style: TextStyle(
+            color: Color(0xFF1E40AF),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -176,10 +219,17 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
               _buildDropdownClientes(),
               const SizedBox(height: 16),
               _buildFieldLabel('Título'),
-              _buildTextFormField(_tituloController, 'Ej. Revisión de equipos...'),
+              _buildTextFormField(
+                _tituloController,
+                'Ej. Revisión de equipos...',
+              ),
               const SizedBox(height: 16),
               _buildFieldLabel('Descripción'),
-              _buildTextFormField(_descripcionController, 'Detalles de la carga...', maxLines: 3),
+              _buildTextFormField(
+                _descripcionController,
+                'Detalles de la carga...',
+                maxLines: 3,
+              ),
               const SizedBox(height: 16),
               _buildFieldLabel('Usuario Seleccionado'),
               _buildDropdownUsuarios(),
@@ -189,31 +239,58 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2030)).then((picked) {
+                        showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(2030),
+                        ).then((picked) {
                           if (picked != null) {
                             setState(() {
                               _fechaSeleccionada = picked;
-                              _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
+                              _fechaController.text = DateFormat(
+                                'dd/MM/yyyy',
+                              ).format(picked);
                             });
                           }
                         });
                       },
-                      child: AbsorbPointer(child: _buildTextFormField(_fechaController, 'dd/mm/aaaa', icon: Icons.calendar_today_outlined)),
+                      child: AbsorbPointer(
+                        child: _buildTextFormField(
+                          _fechaController,
+                          'dd/mm/aaaa',
+                          icon: Icons.calendar_today_outlined,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildTextFormField(_lugarNombreController, 'Ciudad, Sede', icon: Icons.location_on_outlined, onIconPressed: _mostrarPopUpMapa)),
+                  Expanded(
+                    child: _buildTextFormField(
+                      _lugarNombreController,
+                      'Ciudad, Sede',
+                      icon: Icons.location_on_outlined,
+                      onIconPressed: _mostrarPopUpMapa,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Actividades', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Actividades',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   IconButton(
-                    onPressed: _mostrarDialogoNuevaActividad, 
-                    icon: const Icon(Icons.add_box, color: Color(0xFF1E40AF), size: 32)
-                  )
+                    onPressed: _mostrarDialogoNuevaActividad,
+                    icon: const Icon(
+                      Icons.add_box,
+                      color: Color(0xFF1E40AF),
+                      size: 32,
+                    ),
+                  ),
                 ],
               ),
               ListView.builder(
@@ -224,10 +301,20 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
                   final act = _actividadesLocales[index];
                   return Card(
                     child: ListTile(
-                      leading: const Icon(Icons.assignment_outlined, color: Color(0xFF1E40AF)),
+                      leading: const Icon(
+                        Icons.assignment_outlined,
+                        color: Color(0xFF1E40AF),
+                      ),
                       title: Text(act['titulo']!),
                       subtitle: Text(act['subTitulo']!),
-                      trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => setState(() => _actividadesLocales.removeAt(index))),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () =>
+                            setState(() => _actividadesLocales.removeAt(index)),
+                      ),
                     ),
                   );
                 },
@@ -239,20 +326,25 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
                 child: Consumer<OrdenesController>(
                   builder: (context, ordenState, _) {
                     return ElevatedButton(
-                      onPressed: ordenState.status == OrdenState.loading ? null : _guardarOrdenCompleta,
+                      onPressed: ordenState.status == OrdenState.loading
+                          ? null
+                          : _guardarOrdenCompleta,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0044C9),
                         shape: RoundedRectangleBorder(
-                          borderRadius:  BorderRadiusGeometry.circular(16)
-                        )
+                          borderRadius: BorderRadiusGeometry.circular(16),
+                        ),
                       ),
-                      child: ordenState.status == OrdenState.loading 
-                        ? const CircularProgressIndicator(color: Colors.white) 
-                        : const Text('Guardar', style: TextStyle(color: Colors.white)),
+                      child: ordenState.status == OrdenState.loading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Guardar',
+                              style: TextStyle(color: Colors.white),
+                            ),
                     );
-                  }
+                  },
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -260,30 +352,34 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     );
   }
 
-  Widget _buildFieldLabel(String text) => Padding(padding: const EdgeInsets.only(bottom: 6.0), child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)));
+  Widget _buildFieldLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 6.0),
+    child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+  );
   Widget _buildTextFormField(
-    TextEditingController ctrl, 
-    String hint, 
-    {int maxLines = 1, 
-      IconData? icon, 
-      VoidCallback? onIconPressed
-    }) {
+    TextEditingController ctrl,
+    String hint, {
+    int maxLines = 1,
+    IconData? icon,
+    VoidCallback? onIconPressed,
+  }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white, 
-        borderRadius: BorderRadius.circular(12), 
-        border: Border.all(
-          color: const Color(0xFFCBD5E1)
-        )),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
       child: TextFormField(
-        controller: ctrl, 
-        maxLines: maxLines, 
+        controller: ctrl,
+        maxLines: maxLines,
         validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
         decoration: InputDecoration(
-          hintText: hint, 
-          border: InputBorder.none, 
-          contentPadding: const EdgeInsets.all(16), 
-          suffixIcon: icon != null ? IconButton(icon: Icon(icon), onPressed: onIconPressed) : null
+          hintText: hint,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.all(16),
+          suffixIcon: icon != null
+              ? IconButton(icon: Icon(icon), onPressed: onIconPressed)
+              : null,
         ),
       ),
     );
@@ -297,10 +393,10 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white, borderRadius: 
-            BorderRadius.circular(12), 
-            border: 
-            Border.all(color: const Color(0xFFCBD5E1))),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
+          ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _clienteSeleccionadoId,
@@ -310,7 +406,10 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
               onChanged: (val) => setState(() => _clienteSeleccionadoId = val),
               items: snapshot.data!.docs.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
-                return DropdownMenuItem(value: data['idCliente'].toString(), child: Text(data['nombreEmpresa'] ?? ''));
+                return DropdownMenuItem(
+                  value: data['idCliente'].toString(),
+                  child: Text(data['nombreEmpresa'] ?? ''),
+                );
               }).toList(),
             ),
           ),
@@ -319,7 +418,7 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     );
   }
 
-    Widget _buildDropdownUsuarios() {
+  Widget _buildDropdownUsuarios() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('usuarios').snapshots(),
       builder: (context, snapshot) {
@@ -327,10 +426,10 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white, borderRadius: 
-            BorderRadius.circular(12), 
-            border: 
-            Border.all(color: const Color(0xFFCBD5E1))),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
+          ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _usuarioSeleccionadId,
@@ -340,7 +439,10 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
               onChanged: (val) => setState(() => _usuarioSeleccionadId = val),
               items: snapshot.data!.docs.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
-                return DropdownMenuItem(value: data['usuario'].toString(), child: Text(data['nombreApellido'] ?? ''));
+                return DropdownMenuItem(
+                  value: data['usuario'].toString(),
+                  child: Text(data['nombreApellido'] ?? ''),
+                );
               }).toList(),
             ),
           ),
@@ -348,5 +450,4 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
       },
     );
   }
-
 }

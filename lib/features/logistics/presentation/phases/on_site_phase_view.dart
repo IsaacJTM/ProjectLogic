@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // 🚀 Para conectar Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logistics_pro/features/logistics/data/datasources/media_upload_api.dart';
 
 enum _OnSiteStatus { idle, uploading, confirmed }

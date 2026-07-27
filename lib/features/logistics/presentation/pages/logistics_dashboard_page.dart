@@ -65,7 +65,6 @@ class _DashboardBodyState extends State<_DashboardBody> {
   }
 
   Widget _buildPhaseContent(OrderPhase phase, String dbOrderId) {
-    // 👈 Renombrado para mayor claridad
     switch (phase) {
       case OrderPhase.assigned:
         return const AssignedPhaseView();
@@ -105,7 +104,6 @@ class _DashboardBodyState extends State<_DashboardBody> {
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 try {
-                  // ✅ CORREGIDO: Quitamos el 'await' ya que 'logout()' es síncrono (void)
                   context.read<AuthController>().logout();
 
                   if (context.mounted) {
