@@ -25,7 +25,6 @@ class _LoginFormState extends State<_LoginForm> {
   final _passwordController = TextEditingController();
   AuthController? _controller;
 
-  // 🚀 Nueva variable para controlar la visibilidad de la contraseña
   bool _isPasswordVisible = false;
 
   @override
@@ -94,22 +93,19 @@ class _LoginFormState extends State<_LoginForm> {
                     ),
                     const SizedBox(height: 40),
 
-                    // 🚀 Campo de Email
                     _buildField(
                       controller: _emailController,
                       hint: 'Correo electrónico',
                       icon: Icons.email_outlined,
-                      keyboardType: TextInputType
-                          .emailAddress, // Teclado optimizado para emails
+                      keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
 
-                    // 🚀 Campo de Contraseña con el botón del "Ojo"
                     _buildField(
                       controller: _passwordController,
                       hint: 'Contraseña',
                       icon: Icons.lock_outline,
-                      obscure: !_isPasswordVisible, // Depende del estado
+                      obscure: !_isPasswordVisible,
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isPasswordVisible
@@ -118,7 +114,6 @@ class _LoginFormState extends State<_LoginForm> {
                           color: Colors.white70,
                         ),
                         onPressed: () {
-                          // Actualizamos el estado para alternar la visibilidad
                           setState(() {
                             _isPasswordVisible = !_isPasswordVisible;
                           });
@@ -177,7 +172,6 @@ class _LoginFormState extends State<_LoginForm> {
     );
   }
 
-  // 🚀 Se actualizaron los parámetros para recibir el suffixIcon y keyboardType
   Widget _buildField({
     required TextEditingController controller,
     required String hint,

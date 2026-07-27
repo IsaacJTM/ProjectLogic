@@ -289,7 +289,8 @@ class _EditarPerfilPageState extends State<EditarPerfilPage>
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('ordenes_trabajo')
-          .where('idUsuario', isEqualTo: widget.personaModel.usuario)
+          // Filtramos usando el email, tal como descubrimos en Firebase
+          .where('idUsuario', isEqualTo: widget.personaModel.email)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -310,19 +311,176 @@ class _EditarPerfilPageState extends State<EditarPerfilPage>
           itemBuilder: (context, index) {
             final data =
                 snapshot.data!.docs[index].data() as Map<String, dynamic>;
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+
+            // 1. Extraemos las variables básicas
+            final String nroOrden =
+                data['nroOrden']?.toString() ??
+                data['idOrden']?.toString() ??
+                'N/A';
+            final String notas = data['notasGenerales'] ?? 'Sin descripción';
+            final String idCliente = data['idCliente']?.toString() ?? 'N/A';
+
+            // 2. Extraemos el estado/fase leyendo el campo 'estadoFase' como número
+            final int numeroFase = data['estadoFase'] as int? ?? 0;
+
+            String estadoStr;
+            List<Color> gradientEstado;
+            IconData iconoEstado;
+
+            // 3. Lógica para asignar Gradientes, Ícono y Texto según el número
+            switch (numeroFase) {
+              case 1: // En Ruta
+                gradientEstado = const [Color(0xFF3B6FF0), Color(0xFF17318F)];
+                iconoEstado = Icons.local_shipping_rounded;
+                estadoStr = 'EN RUTA';
+                break;
+              case 2: // En Sitio
+                gradientEstado = const [Color(0xFF2F55E0), Color(0xFF17318F)];
+                iconoEstado = Icons.location_on_rounded;
+                estadoStr = 'EN SITIO';
+                break;
+              case 3: // Ejecución
+                gradientEstado = const [Color(0xFF5B4FE0), Color(0xFF3B31A8)];
+                iconoEstado = Icons.build_rounded;
+                estadoStr = 'EJECUCIÓN';
+                break;
+              case 4: // Finalizado
+                gradientEstado = const [Color(0xFF2FA972), Color(0xFF1F8256)];
+                iconoEstado = Icons.verified_rounded;
+                estadoStr = 'FINALIZADO';
+                break;
+              case 0: // Asignado
+              default:
+                gradientEstado = const [Color(0xFF9AA3B8), Color(0xFF7C8499)];
+                iconoEstado = Icons.badge_rounded;
+                estadoStr = 'ASIGNADO';
+                break;
+            }
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF16213A).withOpacity(0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-              child: ListTile(
-                leading: const Icon(Icons.assignment, color: Color(0xFF2563EB)),
-                title: Text(
-                  data['notasGenerales'] ?? 'Sin descripción',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    // Chorri aqui falta ver detalle
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: gradientEstado,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: gradientEstado.first.withOpacity(0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            iconoEstado,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Orden #$nroOrden',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF16213A),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: LinearGradient(
+                                    colors: gradientEstado,
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                ),
+                                child: Text(
+                                  estadoStr,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                notas,
+                                style: const TextStyle(
+                                  color: Color(0xFF475569),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Cliente ID: $idCliente',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 🌟 FLECHA DERECHA
+                        const Padding(
+                          padding: EdgeInsets.only(top: 12.0),
+                          child: Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF7B849A),
+                            size: 26,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                subtitle: Text('Cliente ID: ${data['idCliente'] ?? 'N/A'}'),
-                trailing: const Icon(Icons.chevron_right),
               ),
             );
           },
