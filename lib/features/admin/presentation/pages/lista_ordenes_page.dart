@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:logistics_pro/core/router/app_router.dart';
+import 'package:logistics_pro/core/theme/app_colors.dart';
 import 'package:logistics_pro/features/admin/domain/entities/orden_trabajo_entity.dart';
 import 'package:logistics_pro/features/admin/presentation/controllers/ordenes_controller.dart';
 
@@ -210,14 +211,14 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
               child: OutlinedButton(
                 onPressed: () => context.push(AppRouter.createOrden),
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: Color(0xFFDC2626), width: 1.5),
+                  backgroundColor: AppColors.primary,
+                  //side: const BorderSide(color: Color(0xFFDC2626), width: 1.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text(
                   "AGREGAR ORDEN",
                   style: TextStyle(
-                    color: Color(0xFFDC2626),
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     letterSpacing: 1.1,
@@ -239,7 +240,7 @@ class _CardOrdenItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Cálculo dinámico de Porcentaje a partir de las Entidades
-    int completadas = orden.actividades.where((a) => a.estadoCompletado).length;
+    int completadas = orden.actividades.where((a) => a.estadoCompletada).length;
     double porcentajeFactor = orden.actividades.isEmpty ? 0 : (completadas / orden.actividades.length);
     int porcentajeTexto = (porcentajeFactor * 100).round();
     return Container(
@@ -267,7 +268,7 @@ class _CardOrdenItem extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
           ),
           subtitle: Text(
-            "ID: #ORD-${orden.nroOrden}",
+            "ID: #ORD-${orden.nroOrden} - ${orden.idUsuario}",
             style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
           children: [
@@ -303,8 +304,8 @@ class _CardOrdenItem extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(
-                          actividad.estadoCompletado ? Icons.check_circle : Icons.radio_button_unchecked,
-                          color: actividad.estadoCompletado ? const Color(0xFF2563EB) : const Color(0xFFCBD5E1),
+                          actividad.estadoCompletada ? Icons.check_circle : Icons.radio_button_unchecked,
+                          color: actividad.estadoCompletada ? const Color(0xFF2563EB) : const Color(0xFFCBD5E1),
                           size: 20,
                         ),
                         const SizedBox(width: 10),
@@ -313,8 +314,8 @@ class _CardOrdenItem extends StatelessWidget {
                             actividad.descripcion,
                             style: TextStyle(
                               fontSize: 13,
-                              color: actividad.estadoCompletado ? const Color(0xFF1E293B) : const Color(0xFF64748B),
-                              fontWeight: actividad.estadoCompletado ? FontWeight.w500 : FontWeight.normal,
+                              color: actividad.estadoCompletada ? const Color(0xFF1E293B) : const Color(0xFF64748B),
+                              fontWeight: actividad.estadoCompletada ? FontWeight.w500 : FontWeight.normal,
                             ),
                           ),
                         ),

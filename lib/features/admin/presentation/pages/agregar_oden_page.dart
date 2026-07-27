@@ -29,6 +29,7 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
   final String _longitud = '-77.042793';
   DateTime? _fechaSeleccionada;
   String? _clienteSeleccionadoId; // Guardará el idCliente exacto
+  String? _usuarioSeleccionadId;
   List<Map<String, String>> _actividadesLocales = []; // Listado temporal UI
   OrdenesController? _ordenesController;
 
@@ -79,9 +80,9 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
 
   void _mostrarDialogoNuevaActividad() {
     final actFormKey = GlobalKey<FormState>();
-    final tCtrl = TextEditingController();
-    final sCtrl = TextEditingController();
-
+    final _descripcionController = TextEditingController();
+    final _notaTareaController = TextEditingController();
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -89,10 +90,16 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
         content: Form(
           key: actFormKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(controller: tCtrl, decoration: const InputDecoration(labelText: 'Título'), validator: (v) => v!.isEmpty ? 'Requerido' : null),
-              TextFormField(controller: sCtrl, decoration: const InputDecoration(labelText: 'Subtítulo'), validator: (v) => v!.isEmpty ? 'Requerido' : null),
+              //TextFormField(controller: _descripcionController, decoration: const InputDecoration(labelText: 'Título'), validator: (v) => v!.isEmpty ? 'Requerido' : null),
+              //TextFormField(controller: _notaTareaController, decoration: const InputDecoration(labelText: 'Subtítulo'), validator: (v) => v!.isEmpty ? 'Requerido' : null),
+              _buildFieldLabel('Título Tarea'),
+              _buildTextFormField(_descripcionController, 'Revisar fuga...'),
+              const SizedBox(height: 16),
+              _buildFieldLabel('Nota Tarea'),
+              _buildTextFormField(_notaTareaController, 'No se detectaron...'),
             ],
           ),
         ),
@@ -102,7 +109,11 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
             onPressed: () {
               if (actFormKey.currentState!.validate()) {
                 setState(() {
-                  _actividadesLocales.add({'titulo': tCtrl.text.trim(), 'subTitulo': sCtrl.text.trim()});
+                  _actividadesLocales.add(
+                    {
+                      'titulo': _descripcionController.text.trim(), 
+                      'subTitulo': _notaTareaController.text.trim()
+                    });
                 });
                 context.pop();
               }
@@ -118,9 +129,8 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     if (!_formKey.currentState!.validate() || _clienteSeleccionadoId == null) return;
     if (_actividadesLocales.isEmpty) return;
 
-    final constUuid = const Uuid();
-    final int generatedIdOrden = int.parse(constUuid.v4().substring(0, 5)) ; // Generador simple ID único
-    final int geratedITarea = int.parse(constUuid.v4().substring(0,4));
+    final int generatedIdOrden = 101 + (DateTime.now().millisecond); // Generador simple ID único
+    final int geratedITarea = 10 + DateTime.now().second;
 
     // Mapeamos las actividades temporales a la Entidad limpia
     final listaEntidadesActividades = _actividadesLocales.map((tarea) => TareaChecklistEntity(
@@ -171,6 +181,9 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
               _buildFieldLabel('Descripción'),
               _buildTextFormField(_descripcionController, 'Detalles de la carga...', maxLines: 3),
               const SizedBox(height: 16),
+              _buildFieldLabel('Usuario Seleccionado'),
+              _buildDropdownUsuarios(),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -197,7 +210,10 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Actividades', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(onPressed: _mostrarDialogoNuevaActividad, icon: const Icon(Icons.add_box, color: Color(0xFF1E40AF), size: 32))
+                  IconButton(
+                    onPressed: _mostrarDialogoNuevaActividad, 
+                    icon: const Icon(Icons.add_box, color: Color(0xFF1E40AF), size: 32)
+                  )
                 ],
               ),
               ListView.builder(
@@ -245,12 +261,30 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
   }
 
   Widget _buildFieldLabel(String text) => Padding(padding: const EdgeInsets.only(bottom: 6.0), child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)));
-  Widget _buildTextFormField(TextEditingController ctrl, String hint, {int maxLines = 1, IconData? icon, VoidCallback? onIconPressed}) {
+  Widget _buildTextFormField(
+    TextEditingController ctrl, 
+    String hint, 
+    {int maxLines = 1, 
+      IconData? icon, 
+      VoidCallback? onIconPressed
+    }) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFCBD5E1))),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(12), 
+        border: Border.all(
+          color: const Color(0xFFCBD5E1)
+        )),
       child: TextFormField(
-        controller: ctrl, maxLines: maxLines, validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
-        decoration: InputDecoration(hintText: hint, border: InputBorder.none, contentPadding: const EdgeInsets.all(16), suffixIcon: icon != null ? IconButton(icon: Icon(icon), onPressed: onIconPressed) : null),
+        controller: ctrl, 
+        maxLines: maxLines, 
+        validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
+        decoration: InputDecoration(
+          hintText: hint, 
+          border: InputBorder.none, 
+          contentPadding: const EdgeInsets.all(16), 
+          suffixIcon: icon != null ? IconButton(icon: Icon(icon), onPressed: onIconPressed) : null
+        ),
       ),
     );
   }
@@ -262,10 +296,15 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
         if (!snapshot.hasData) return const LinearProgressIndicator();
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFCBD5E1))),
+          decoration: BoxDecoration(
+            color: Colors.white, borderRadius: 
+            BorderRadius.circular(12), 
+            border: 
+            Border.all(color: const Color(0xFFCBD5E1))),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _clienteSeleccionadoId,
+              style: TextStyle(color: Colors.black87, fontSize: 17),
               hint: const Text('Seleccionar cliente'),
               isExpanded: true,
               onChanged: (val) => setState(() => _clienteSeleccionadoId = val),
@@ -279,4 +318,35 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
       },
     );
   }
+
+    Widget _buildDropdownUsuarios() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('usuarios').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const LinearProgressIndicator();
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white, borderRadius: 
+            BorderRadius.circular(12), 
+            border: 
+            Border.all(color: const Color(0xFFCBD5E1))),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _usuarioSeleccionadId,
+              style: TextStyle(color: Colors.black87, fontSize: 16),
+              hint: const Text('Seleccionar Usuario'),
+              isExpanded: true,
+              onChanged: (val) => setState(() => _usuarioSeleccionadId = val),
+              items: snapshot.data!.docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return DropdownMenuItem(value: data['usuario'].toString(), child: Text(data['nombreApellido'] ?? ''));
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 }

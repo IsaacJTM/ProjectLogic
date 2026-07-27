@@ -29,11 +29,9 @@ class OrdenTrabajoModel extends OrdenTrabajoEntity{
       'fechafinalizacionOrden': fechafinalizacionOrden != null ? Timestamp.fromDate(fechafinalizacionOrden!) : null,
       'titulo': titulo,
       'tiempoEjecucion': tiempoEjecucion,
-      'lugar': {
-        'nombreLugar': nombreLugar,
-        'latitud': latitud,
-        'longitud': longitud
-      }
+      'nombreLugar': nombreLugar,
+      'latitud': latitud,
+      'longitud': longitud
     };
   }
 }

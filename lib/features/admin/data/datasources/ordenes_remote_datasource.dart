@@ -22,7 +22,7 @@ class OrdenesRemoteDatasource {
         idTarea: actividad.idTarea, 
         idOrden: actividad.idOrden, 
         descripcion: actividad.descripcion,
-        estadoCompletado: actividad.estadoCompletado
+        estadoCompletada: actividad.estadoCompletada
       );
 
       //Para crear el documento de ACTIVIDAD
@@ -56,7 +56,7 @@ class OrdenesRemoteDatasource {
                     idTarea: int.parse(docTarea.id), 
                     idOrden: docTarea['idOrden'] ?? '', 
                     descripcion: docTarea['descripcion'] ?? '',
-                    estadoCompletado: docTarea['estadoCompletada'] ?? false
+                    estadoCompletada: docTarea['estadoCompletada'] ?? false
                   );
                 }).toList();
 

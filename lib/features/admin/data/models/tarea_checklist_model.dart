@@ -7,7 +7,7 @@ class TareaChecklistModel extends TareaChecklistEntity {
     required super.idOrden, 
     required super.descripcion,
     super.fechaCreacion,
-    super.estadoCompletado
+    super.estadoCompletada
   });
 
   Map<String, dynamic> toMap(){
@@ -16,7 +16,7 @@ class TareaChecklistModel extends TareaChecklistEntity {
       'idOrden': idOrden,
       'descripcion': descripcion,
       'fechaCreacion':fechaCreacion != null ? Timestamp.fromDate(fechaCreacion!) : null,
-      'estadoCompletado': estadoCompletado
+      'estadoCompletada': estadoCompletada
     };
   }
 

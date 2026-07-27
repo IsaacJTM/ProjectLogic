@@ -5,7 +5,7 @@ class TareaChecklistEntity {
   final String? horaCompletado;
   final String descripcion;
   final String? notaTarea;
-  final bool estadoCompletado;
+  final bool estadoCompletada;
 
   TareaChecklistEntity({
     required this.idTarea,
@@ -14,7 +14,7 @@ class TareaChecklistEntity {
     this.horaCompletado,
     required this.descripcion,
     this.notaTarea,
-    this.estadoCompletado = false,
+    this.estadoCompletada = false,
   });
 
 }
