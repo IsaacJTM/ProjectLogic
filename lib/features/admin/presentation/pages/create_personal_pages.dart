@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logistics_pro/core/theme/app_colors.dart';
 import 'package:logistics_pro/features/admin/data/models/persona_model.dart';
 import 'package:logistics_pro/features/admin/presentation/controllers/persona_controller.dart';
+import 'package:logistics_pro/features/logistics/data/datasources/media_upload_api.dart';
 import 'package:provider/provider.dart';
 
 class CreatePersonalPages extends StatefulWidget {
@@ -20,11 +23,16 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
   final _experienciaController = TextEditingController();
   final _usuarioController = TextEditingController();
   final _contraseniaController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  final MediaUploadApi _mediaUploadApi = MediaUploadApi();
+  //Variable para guardar y mostrar la foto 
+  String? _uploadedImageUrl;
 
   //estados locales de la interfaz gráfica 
   String? _cargoSeleccionado; 
   bool _obscurePassword = true;
   bool _isSaved = false;
+  bool _isUploadImageUrl = false;
   PersonaController? _personaController;
   final List<String> _cargos = ['Administrador', 'Técnico', 'Supervisor', 'Operador'];
 
@@ -71,6 +79,56 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
     }
   }
 
+  //Método para capturar la imagen
+  Future<void> _carputePhoto() async{
+    try{
+      //1. Abrimos la cámara
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+      );
+
+      if(photo == null) return; 
+
+      // Para el modo cargando
+      setState(() {
+        _isUploadImageUrl = true;
+      });
+
+      // 2. Leemos la imagen como bytes
+      final bytes = await photo.readAsBytes();
+
+      //3. subimos los bytes a Cloudinary
+      final urlGenerada = await _mediaUploadApi.uploadUser(
+        tag: 'usuario', 
+        bytes: bytes
+      );
+
+      setState(() {
+        _uploadedImageUrl = urlGenerada;
+        _isUploadImageUrl = false;
+      });
+
+      if(!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Imagen Cargada'),
+          backgroundColor: Colors.green,
+        )
+      );
+    }catch(e){
+      setState(() {
+        _isUploadImageUrl = false;
+      });
+
+      if(!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al subir la imagen: $e')));
+    }
+  }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -101,7 +159,8 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
       experienciaAnios: int.tryParse(_experienciaController.text) ?? 0, 
       cargo: _cargoSeleccionado!, 
       usuario: _usuarioController.text.trim(),
-      contrasena: _contraseniaController.text.trim()
+      contrasena: _contraseniaController.text.trim(),
+      imageUrl: _uploadedImageUrl,
     );
     context.read<PersonaController>().registrarEmpleado(nuevaPersona);
   }
@@ -143,33 +202,57 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
                 children: [
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    padding: _uploadedImageUrl == null ? const EdgeInsets.symmetric(vertical: 24) : EdgeInsets.symmetric(vertical: 0),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color:Color(0xFFE2E8F0)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 50,
-                          child: Icon(Icons.add_a_photo_outlined),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Cargar Foto',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'PNG, JPG',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ],
+                    child: InkWell(
+                      onTap: _isSaved ? null : _carputePhoto,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if(_uploadedImageUrl != null)...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(
+                                _uploadedImageUrl!,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                height: 220,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if(loadingProgress == null) return child;
+                                  return const SizedBox(
+                                    height: 220,
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          ]else ...[
+                            CircleAvatar(
+                              radius: 50,
+                              child: Icon(Icons.add_a_photo_outlined),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Cargar Foto',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'PNG, JPG',
+                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),

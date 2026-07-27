@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logistics_pro/features/admin/domain/entities/tarea_checklist_entity.dart';
@@ -23,8 +25,8 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
   final _lugarNombreController = TextEditingController();
   final _fechaController = TextEditingController();
 
-  final double _latitud = -12.046374;
-  final double _longitud = -77.042793;
+  final String _latitud = '-12.046374';
+  final String _longitud = '-77.042793';
   DateTime? _fechaSeleccionada;
   String? _clienteSeleccionadoId; // Guardará el idCliente exacto
   List<Map<String, String>> _actividadesLocales = []; // Listado temporal UI
@@ -117,11 +119,12 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     if (_actividadesLocales.isEmpty) return;
 
     final constUuid = const Uuid();
-    final String generatedIdOrden = constUuid.v4().substring(0, 8); // Generador simple ID único
+    final int generatedIdOrden = int.parse(constUuid.v4().substring(0, 5)) ; // Generador simple ID único
+    final int geratedITarea = int.parse(constUuid.v4().substring(0,4));
 
     // Mapeamos las actividades temporales a la Entidad limpia
     final listaEntidadesActividades = _actividadesLocales.map((tarea) => TareaChecklistEntity(
-      idTarea: constUuid.v4().substring(0, 8),
+      idTarea: geratedITarea,
       idOrden: generatedIdOrden,
       descripcion: tarea['titulo']!,
       notaTarea: tarea['subTitulo']!,
@@ -130,7 +133,7 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     // Creamos la Orden de Trabajo como Entidad lista para enviar
     final nuevaOrdenTrabajo = OrdenTrabajoEntity(
       idOrden: generatedIdOrden,
-      idCliente: _clienteSeleccionadoId!,
+      idCliente: int.parse(_clienteSeleccionadoId!) ,
       idUsuario: 'Tecnicao',
       nroOrden: 1001 + (DateTime.now().millisecond), // Número autogenerado para el ejemplo
       estadoFase: 4, // Estado Base de tu captura

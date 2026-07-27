@@ -38,7 +38,7 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
     if(picked != null){
       setState(() {
         _fechaSeleccionada = picked;
-        _fechaController.text = DateFormat('MM dd, yyyy').format(picked);
+        _fechaController.text = DateFormat('dd-MM-yyyy').format(picked);
       });
     }
   }
@@ -58,12 +58,8 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Color(0xFF1E293B)),
-          onPressed: () {},
-        ),
         title: const Text(
-          "ÓRDENES",
+          "Lista de Órdenes",
           style: TextStyle(
             color: Color(0xFF1E40AF),
             fontWeight: FontWeight.bold,
@@ -71,16 +67,6 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
             letterSpacing: 1.1,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.grey[200],
-              child: const Icon(Icons.person, color: Colors.grey),
-            ),
-          )
-        ],
       ),
       body: Stack(
         children: [
@@ -111,7 +97,7 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
                                 child: Text(
                                   _fechaSeleccionada == null ? "Fecha" : _fechaController.text,
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 15,
                                     color: _fechaSeleccionada == null ? Colors.black38 : const Color(0xFF1E293B),
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -133,6 +119,7 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
                       flex: 5,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
+                        height: 45,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
@@ -146,7 +133,6 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
                             hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
                             border: InputBorder.none,
                             icon: Icon(Icons.search, size: 20, color: Color(0xFF64748B)),
-                            contentPadding: EdgeInsets.symmetric(vertical: 10),
                           ),
                         ),
                       ),
@@ -164,8 +150,7 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // 2. ESCUCHA DE ORDENES VIA CLEAN ARCHITECTURE (STREAM FROM USECASE)
+                
                 Expanded(
                   child: StreamBuilder<List<OrdenTrabajoEntity>>(
                     stream: controller.ordenesStream,
@@ -173,7 +158,7 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
-
+                      print(snapshot.error);
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return const Center(
                           child: Text("No hay órdenes registradas", style: TextStyle(color: Colors.grey)),
@@ -282,7 +267,7 @@ class _CardOrdenItem extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
           ),
           subtitle: Text(
-            "ID: #ORD-2023-${orden.nroOrden}",
+            "ID: #ORD-${orden.nroOrden}",
             style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
           children: [

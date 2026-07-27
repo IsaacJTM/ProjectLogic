@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logistics_pro/features/admin/data/models/orden_trabajo_model.dart';
 import 'package:logistics_pro/features/admin/data/models/tarea_checklist_model.dart';
@@ -12,7 +14,7 @@ class OrdenesRemoteDatasource {
     //Para crear el documento de la ORDEN
     final DocumentReference ordenRef = _firestore
                 .collection('ordenes_trabajo')
-                .doc(orden.idOrden);
+                .doc(orden.idOrden.toString());
     writeBatch.set(ordenRef, orden.toMap());
 
     for(var actividad in orden.actividades){
@@ -24,7 +26,7 @@ class OrdenesRemoteDatasource {
       );
 
       //Para crear el documento de ACTIVIDAD
-      final DocumentReference tareaRef = _firestore.collection('tareas_checklist').doc(actividad.idTarea);
+      final DocumentReference tareaRef = _firestore.collection('tareas_checklist').doc(actividad.idTarea.toString());
       writeBatch.set(tareaRef, tarea.toMap());
     }
 
@@ -41,7 +43,7 @@ class OrdenesRemoteDatasource {
               List<OrdenTrabajoEntity>  listaOrdenes = [];
               for (var docOrden in snapshotsOrdenes.docs){
                 final dataOrden = docOrden.data();
-                final String idOrdenDoc = docOrden.id;
+                final int idOrdenDoc = int.parse(docOrden.id);
 
                 // Recuperamos de Firestores las tareas de checklist asociadas a la Orden
                 final snapshotsTarea = await _firestore
@@ -51,26 +53,26 @@ class OrdenesRemoteDatasource {
                 final tareaList = snapshotsTarea.docs.map((docTarea){
                   //final dataTarea = docTarea.data();
                   return TareaChecklistModel(
-                    idTarea: docTarea.id, 
+                    idTarea: int.parse(docTarea.id), 
                     idOrden: docTarea['idOrden'] ?? '', 
                     descripcion: docTarea['descripcion'] ?? '',
-                    estadoCompletado: docTarea['estadoCompletado'] ?? false
+                    estadoCompletado: docTarea['estadoCompletada'] ?? false
                   );
                 }).toList();
 
                 listaOrdenes.add(
                   OrdenTrabajoEntity(
                     idOrden: idOrdenDoc, 
-                    idCliente: dataOrden['idCliente'] ?? '', 
+                    idCliente: dataOrden['idCliente'] ?? '', //vuelve a pages 
                     idUsuario: dataOrden['idUsuario'] ?? '', 
                     nroOrden: dataOrden['nroOrden'] ?? 1001,
                     estadoFase: dataOrden['estadoFase'] ?? 0,
                     fechaCreacion: (dataOrden['fechaCreacion'] as Timestamp?)?.toDate() ?? DateTime.now(), 
                     fechaAsignacionOrden: (dataOrden['fechaAsignacionOrden'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                    titulo: dataOrden['descripcion'], 
-                    nombreLugar: dataOrden['nombreLugar'],
-                    latitud: (dataOrden['latitud'] as num)?.toDouble() ?? 0.0,
-                    longitud: (dataOrden['longitud'] as num)?.toDouble() ?? 0.0,
+                    titulo: dataOrden['notasGenerales'], 
+                    nombreLugar: (dataOrden['nombreLugar'] as String?) ?? '',
+                    latitud: (dataOrden['latitud'] as String?) ?? '',
+                    longitud: (dataOrden['longitud'] as String?) ?? '',
                     actividades: tareaList
                   ),
                 );
