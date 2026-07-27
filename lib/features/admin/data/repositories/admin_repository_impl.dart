@@ -30,6 +30,7 @@ class AdminRepositoryImpl implements AdminRepository{
       idCliente: orden.idCliente, 
       idUsuario: orden.idUsuario, 
       nroOrden: orden.nroOrden, 
+      estadoFase: orden.estadoFase,
       fechaCreacion: orden.fechaCreacion, 
       fechaAsignacionOrden: orden.fechaAsignacionOrden, 
       titulo: orden.titulo, 

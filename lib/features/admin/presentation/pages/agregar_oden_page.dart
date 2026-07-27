@@ -146,7 +146,7 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
       idCliente: int.parse(_clienteSeleccionadoId!) ,
       idUsuario: 'Tecnicao',
       nroOrden: 1001 + (DateTime.now().millisecond), // Número autogenerado para el ejemplo
-      estadoFase: 4, // Estado Base de tu captura
+      estadoFase: 0, // Estado Base de tu captura
       fechaCreacion: DateTime.now(),
       fechaAsignacionOrden: _fechaSeleccionada ?? DateTime.now(),
       titulo: _tituloController.text.trim() + " - " + _descripcionController.text.trim(),
