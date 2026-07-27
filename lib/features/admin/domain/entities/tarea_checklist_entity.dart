@@ -1,6 +1,6 @@
 class TareaChecklistEntity {
-  final String idTarea;
-  final String idOrden;
+  final int idTarea;
+  final int idOrden;
   final DateTime? fechaCreacion;
   final String? horaCompletado;
   final String descripcion;

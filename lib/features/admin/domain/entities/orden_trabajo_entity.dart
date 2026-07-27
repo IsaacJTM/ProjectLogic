@@ -1,8 +1,8 @@
 import 'package:logistics_pro/features/admin/domain/entities/tarea_checklist_entity.dart';
 
 class OrdenTrabajoEntity {
-  final String idOrden;
-  final String idCliente;
+  final int idOrden;
+  final int idCliente;
   final String idUsuario;
   final int nroOrden;
   final int estadoFase;
@@ -13,8 +13,8 @@ class OrdenTrabajoEntity {
   final String? descripcion;
   final int? tiempoEjecucion;
   final String nombreLugar;
-  final double latitud;
-  final double longitud;
+  final String latitud;
+  final String longitud;
   final List<TareaChecklistEntity> actividades;
 
   OrdenTrabajoEntity({
