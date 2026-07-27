@@ -158,7 +158,7 @@ class _CreatePersonalPagesState extends State<CreatePersonalPages> {
       carrera: _carreraController.text.trim(), 
       experienciaAnios: int.tryParse(_experienciaController.text) ?? 0, 
       cargo: _cargoSeleccionado!, 
-      usuario: _usuarioController.text.trim(),
+      usuario: '${_usuarioController.text.trim()}@worker.com',
       contrasena: _contraseniaController.text.trim(),
       imageUrl: _uploadedImageUrl,
     );

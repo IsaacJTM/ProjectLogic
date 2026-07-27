@@ -170,7 +170,7 @@ class _ListaOrdenesPageState extends State<ListaOrdenesPage> {
                       final ordenesFiltradas = snapshot.data!.where((orden) {
                         final busqueda = _filtroTexto.toLowerCase();
                         final matchNro = orden.nroOrden.toString().contains(busqueda);
-                        final matchTitulo = orden.titulo.toLowerCase().contains(busqueda);
+                        final matchTitulo = orden.notasGenerales.toLowerCase().contains(busqueda);
                         
                         bool matchFecha = true;
                         if (_fechaSeleccionada != null) {
@@ -264,7 +264,7 @@ class _CardOrdenItem extends StatelessWidget {
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           leading: _buildProgressCircle(porcentajeFactor, porcentajeTexto),
           title: Text(
-            orden.titulo,
+            orden.notasGenerales,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
           ),
           subtitle: Text(

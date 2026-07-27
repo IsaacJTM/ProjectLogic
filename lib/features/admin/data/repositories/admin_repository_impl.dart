@@ -33,7 +33,7 @@ class AdminRepositoryImpl implements AdminRepository{
       estadoFase: orden.estadoFase,
       fechaCreacion: orden.fechaCreacion, 
       fechaAsignacionOrden: orden.fechaAsignacionOrden, 
-      titulo: orden.titulo, 
+      notasGenerales: orden.notasGenerales, 
       tiempoEjecucion: orden.tiempoEjecucion,
       nombreLugar: orden.nombreLugar, 
       latitud: orden.latitud,

@@ -9,7 +9,7 @@ class OrdenTrabajoEntity {
   final DateTime fechaCreacion;
   final DateTime fechaAsignacionOrden;
   final DateTime? fechafinalizacionOrden;
-  final String titulo;
+  final String notasGenerales;
   final String? descripcion;
   final int? tiempoEjecucion;
   final String nombreLugar;
@@ -26,7 +26,7 @@ class OrdenTrabajoEntity {
     required this.fechaCreacion,
     required this.fechaAsignacionOrden,
     this.fechafinalizacionOrden,
-    required this.titulo,
+    required this.notasGenerales,
     this.descripcion,
     this.tiempoEjecucion = 0,
     required this.nombreLugar,

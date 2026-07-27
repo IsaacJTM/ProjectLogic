@@ -144,12 +144,12 @@ class _AgregarOrdenPageState extends State<AgregarOrdenPage> {
     final nuevaOrdenTrabajo = OrdenTrabajoEntity(
       idOrden: generatedIdOrden,
       idCliente: int.parse(_clienteSeleccionadoId!) ,
-      idUsuario: 'Tecnicao',
+      idUsuario: _usuarioSeleccionadId!,
       nroOrden: 1001 + (DateTime.now().millisecond), // Número autogenerado para el ejemplo
       estadoFase: 0, // Estado Base de tu captura
       fechaCreacion: DateTime.now(),
       fechaAsignacionOrden: _fechaSeleccionada ?? DateTime.now(),
-      titulo: _tituloController.text.trim() + " - " + _descripcionController.text.trim(),
+      notasGenerales: _tituloController.text.trim() + " - " + _descripcionController.text.trim(),
       tiempoEjecucion: 0,
       nombreLugar: _lugarNombreController.text.trim(),
       latitud: _latitud,

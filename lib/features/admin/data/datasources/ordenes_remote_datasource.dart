@@ -66,10 +66,10 @@ class OrdenesRemoteDatasource {
                     idCliente: dataOrden['idCliente'] ?? '', //vuelve a pages 
                     idUsuario: dataOrden['idUsuario'] ?? '', 
                     nroOrden: dataOrden['nroOrden'] ?? 1001,
-                    estadoFase: dataOrden['estadoFase'] ?? 0,
+                    estadoFase: (dataOrden['estadoFase'] as int?) ?? 0,
                     fechaCreacion: (dataOrden['fechaCreacion'] as Timestamp?)?.toDate() ?? DateTime.now(), 
                     fechaAsignacionOrden: (dataOrden['fechaAsignacionOrden'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                    titulo: dataOrden['notasGenerales'], 
+                    notasGenerales: dataOrden['notasGenerales'], 
                     nombreLugar: (dataOrden['nombreLugar'] as String?) ?? '',
                     latitud: (dataOrden['latitud'] as String?) ?? '',
                     longitud: (dataOrden['longitud'] as String?) ?? '',
